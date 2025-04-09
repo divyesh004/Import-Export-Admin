@@ -45,6 +45,12 @@ export const AuthProvider = ({ children }) => {
       const { token, user } = response.data;
       localStorage.setItem('token', token);
       localStorage.setItem('userRole', user.role);
+      
+      // Store industry information for sub-admin users
+      if (user.role === 'sub-admin' && user.industry) {
+        localStorage.setItem('userIndustry', user.industry);
+      }
+      
       setUser(user);
       return { success: true };
     } catch (error) {
@@ -56,6 +62,7 @@ export const AuthProvider = ({ children }) => {
   const logout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('userRole');
+    localStorage.removeItem('userIndustry');
     setUser(null);
   };
 

@@ -28,8 +28,18 @@ api.interceptors.request.use(
 // QA API methods
 export const qaApi = {
   // Get all product questions
-  getProductQuestions: async () => {
-    const response = await api.get('qa/questions/all');
+  getProductQuestions: async (params = {}) => {
+    // Get user industry from localStorage if user is sub-admin
+    const userRole = localStorage.getItem('userRole');
+    const userIndustry = localStorage.getItem('userIndustry');
+    
+    // Add industry parameter for sub-admin users
+    let queryParams = '';
+    if (userRole === 'sub-admin' && userIndustry) {
+      queryParams = `?industry=${encodeURIComponent(userIndustry)}`;
+    }
+    
+    const response = await api.get(`qa/questions/all${queryParams}`);
     const questions = (response.data || []).map((q) => ({
       ...q,
       askedBy: q.users?.name || 'Unknown User',

@@ -66,8 +66,15 @@ const ApprovedProducts = () => {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [openDetails, setOpenDetails] = useState(false);
   const [activeTab, setActiveTab] = useState(0);
+  const [userIndustry, setUserIndustry] = useState('');
 
   useEffect(() => {
+    // Get user role and industry from localStorage
+    const userRole = localStorage.getItem('userRole');
+    if (userRole === 'sub-admin') {
+      setUserIndustry(localStorage.getItem('userIndustry') || '');
+    }
+    
     const fetchApprovedProducts = async () => {
       try {
         setLoading(true);
@@ -173,6 +180,31 @@ const ApprovedProducts = () => {
       </Box>
     );
   }
+  
+  if (products.length === 0) {
+    return (
+      <Container maxWidth="xl" sx={{ p: { xs: 2, sm: 3 }, mt: { xs: 6, sm: 8 } }}>
+        <Paper elevation={0} sx={{ 
+          p: 4, 
+          borderRadius: 4,
+          background: 'linear-gradient(135deg, #f5f7fa 0%, #e4e8eb 100%)',
+          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.05)'
+        }}>
+          <Box sx={{ textAlign: 'center', py: 5 }}>
+            <InfoIcon sx={{ fontSize: 60, color: 'info.main', mb: 2 }} />
+            <Typography variant="h5" gutterBottom>
+              No Approved Products Found
+            </Typography>
+            <Typography variant="body1" color="text.secondary">
+              {localStorage.getItem('userRole') === 'sub-admin' 
+                ? 'There are no approved products in your assigned industry category.'
+                : 'There are no approved products available at this time.'}
+            </Typography>
+          </Box>
+        </Paper>
+      </Container>
+    );
+  }
 
   return (
     <Container maxWidth="xl" sx={{ p: { xs: 2, sm: 3 }, mt: { xs: 6, sm: 8 } }}>
@@ -182,38 +214,30 @@ const ApprovedProducts = () => {
         background: 'linear-gradient(135deg, #f5f7fa 0%, #e4e8eb 100%)',
         boxShadow: '0 8px 32px rgba(0, 0, 0, 0.05)'
       }}>
-        <Box sx={{ 
-          display: 'flex', 
-          alignItems: 'center', 
-          mb: 3,
-          p: 2,
-          background: 'white',
-          borderRadius: 3,
-          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)'
-        }}>
-          <Badge
-            overlap="circular"
-            anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-            badgeContent={
+          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            <Badge
+              overlap="circular"
+              anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+              badgeContent={
+                <Avatar sx={{ 
+                  bgcolor: 'success.main', 
+                  width: 24, 
+                  height: 24,
+                  boxShadow: '0 2px 8px rgba(76, 175, 80, 0.3)'
+                }}>
+                  <CheckCircleIcon fontSize="small" />
+                </Avatar>
+              }
+            >
               <Avatar sx={{ 
-                bgcolor: 'success.main', 
-                width: 24, 
-                height: 24,
-                boxShadow: '0 2px 8px rgba(76, 175, 80, 0.3)'
+                bgcolor: 'primary.main', 
+                width: 56, 
+                height: 56,
+                boxShadow: '0 4px 12px rgba(63, 81, 181, 0.2)'
               }}>
-                <CheckCircleIcon fontSize="small" />
+                <StoreIcon fontSize="large" />
               </Avatar>
-            }
-          >
-            <Avatar sx={{ 
-              bgcolor: 'primary.main', 
-              width: 56, 
-              height: 56,
-              boxShadow: '0 4px 12px rgba(63, 81, 181, 0.2)'
-            }}>
-              <StoreIcon fontSize="large" />
-            </Avatar>
-          </Badge>
+            </Badge>
           <Box sx={{ ml: 3 }}>
             <Typography variant="h4" component="h1" sx={{ fontWeight: 700 }}>
               Approved Products
@@ -223,6 +247,15 @@ const ApprovedProducts = () => {
             </Typography>
           </Box>
         </Box>
+        {userIndustry && localStorage.getItem('userRole') === 'sub-admin' && (
+          <Chip
+            icon={<CategoryIcon />}
+            label={`Industry: ${userIndustry}`}
+            color="primary"
+            variant="outlined"
+            sx={{ fontWeight: 500 }}
+          />
+        )}
         
         <Divider sx={{ 
           my: 3, 

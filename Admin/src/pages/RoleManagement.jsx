@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { useLocation } from 'react-router-dom';
 import {
   Box,
   Table,
@@ -25,14 +26,19 @@ import {
   IconButton,
   Tooltip,
   TextField,
-  Pagination
+  Pagination,
+  Card,
+  CardContent,
+  Divider
 } from '@mui/material';
 import {
   Edit as EditIcon,
   AdminPanelSettings as AdminIcon,
   Person as PersonIcon,
   Store as SellerIcon,
-  Search as SearchIcon
+  Search as SearchIcon,
+  Lock as LockIcon,
+  ArrowBack as ArrowBackIcon
 } from '@mui/icons-material';
 import { useAuth } from '../services/AuthContext';
 import { API_BASE_URL } from '../config/env';  // Updated import path
@@ -46,28 +52,48 @@ const RoleManagement = () => {
   const [selectedUser, setSelectedUser] = useState(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [newRole, setNewRole] = useState('');
+  const [industries, setIndustries] = useState(['Electronics', 'Fashion', 'Food', 'Furniture', 'Health', 'Sports', 'Technology', 'Toys', 'Other']);
+  const [selectedIndustry, setSelectedIndustry] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [page, setPage] = useState(1);
   const rowsPerPage = 10;
   
-  const roles = ['customer', 'seller', 'admin'];
+  const roles = ['customer', 'seller', 'admin', 'sub-admin'];
   const { user: currentUser, getToken } = useAuth();
 
   const roleIcons = {
     admin: <AdminIcon color="error" />,
+    'sub-admin': <AdminIcon color="warning" />,
     seller: <SellerIcon color="primary" />,
     customer: <PersonIcon color="action" />
   };
 
   const roleColors = {
     admin: 'error',
+    'sub-admin': 'warning',
     seller: 'primary',
     customer: 'default'
   };
 
+
+  const location = useLocation();
+  
   useEffect(() => {
     fetchUsers();
   }, []);
+  
+  useEffect(() => {
+    // Check if there's a user ID in the URL query params
+    const queryParams = new URLSearchParams(location.search);
+    const userId = queryParams.get('user');
+    
+    if (userId && users.length > 0) {
+      const userToSelect = users.find(user => user.id === userId);
+      if (userToSelect) {
+        openDialog(userToSelect);
+      }
+    }
+  }, [location.search, users]);
 
   useEffect(() => {
     const filtered = users.filter(user => 
@@ -137,19 +163,32 @@ const RoleManagement = () => {
         return;
       }
 
-      // Prevent setting role to admin
-      if (newRole === 'admin' && currentUser?.role !== 'admin') {
-        setError('Only admins can assign admin role');
+      // Prevent setting role to admin or sub-admin
+      if ((newRole === 'admin' || newRole === 'sub-admin') && currentUser?.role !== 'admin') {
+        setError('Only admins can assign admin or sub-admin roles');
+        return;
+      }
+      
+      // For sub-admin role, industry is required
+      if (newRole === 'sub-admin' && !selectedIndustry) {
+        setError('Please select an industry for the sub-admin');
         return;
       }
 
+      const requestBody = { role: newRole };
+      
+      // Add industry for sub-admin role
+      if (newRole === 'sub-admin') {
+        requestBody.industry = selectedIndustry;
+      }
+      
       const response = await fetch(`${API_BASE_URL}auth/role/change/${userId}`, {
         method: 'PATCH',
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ role: newRole })
+        body: JSON.stringify(requestBody)
       });
 
       if (!response.ok) {
@@ -169,6 +208,7 @@ const RoleManagement = () => {
   const openDialog = (user) => {
     setSelectedUser(user);
     setNewRole(user.role);
+    setSelectedIndustry(user.industry || '');
     setDialogOpen(true);
   };
 
@@ -176,6 +216,7 @@ const RoleManagement = () => {
     setDialogOpen(false);
     setSelectedUser(null);
     setNewRole('');
+    setSelectedIndustry('');
   };
 
   const confirmRoleChange = () => {
@@ -192,6 +233,16 @@ const RoleManagement = () => {
     page * rowsPerPage
   );
 
+  // Check if current user is admin - use both currentUser and localStorage for reliability
+  const userRoleFromStorage = localStorage.getItem('userRole');
+  const isAdmin = currentUser?.role === 'admin' || userRoleFromStorage === 'admin';
+   
+  // For debugging
+  console.log('Current User:', currentUser);
+  console.log('Is Admin:', isAdmin);
+  console.log('User Role from localStorage:', userRoleFromStorage);
+  
+  // Render loading state
   if (loading) return (
     <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
       <CircularProgress />
@@ -199,12 +250,82 @@ const RoleManagement = () => {
     </Box>
   );
 
+  // Render permission restricted page for non-admin users
+  if (!isAdmin) {
+    return (
+      <Box sx={{ p: 3, display: 'flex', justifyContent: 'center', alignItems: 'center', height: '80vh' }}>
+        <Card 
+          elevation={3} 
+          sx={{ 
+            maxWidth: 500, 
+            width: '100%', 
+            textAlign: 'center',
+            p: 3,
+            marginTop: '120px',
+            borderRadius: 2,
+            bgcolor: 'background.paper',
+            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
+            position: 'relative',
+            overflow: 'hidden'
+          }}
+        >
+          <Box sx={{
+            position: 'absolute',
+            top: 100,
+            left: 0,
+            right: 0,
+            height: '8px',
+            background: 'linear-gradient(90deg, #f44336, #ff9800)'
+          }} />
+          <CardContent sx={{ pt: 4 }}>
+            <Avatar sx={{ 
+              width: 80, 
+              height: 80, 
+              bgcolor: 'error.main', 
+              mx: 'auto',
+              mb: 2,
+              boxShadow: '0 4px 20px rgba(244, 67, 54, 0.2)'
+            }}>
+              <LockIcon sx={{ fontSize: 40 }} />
+            </Avatar>
+            <Typography variant="h4" component="h1" gutterBottom sx={{ fontWeight: 'bold', color: 'error.main' }}>
+              Access Restricted
+            </Typography>
+            <Divider sx={{ my: 2, width: '60%', mx: 'auto' }} />
+            <Typography variant="body1" paragraph sx={{ mb: 3, fontSize: '1.1rem', maxWidth: '90%', mx: 'auto' }}>
+              Role management can only be performed by administrators. You do not have permission to access this page.
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+              Please contact your system administrator if you believe you should have access to this feature.
+            </Typography>
+          </CardContent>
+          <Button
+            variant="contained"
+            color="primary"
+            startIcon={<ArrowBackIcon />}
+            onClick={() => window.history.back()}
+            sx={{ 
+              mt: 2, 
+              mb: 2, 
+              px: 3, 
+              py: 1, 
+              borderRadius: '24px',
+              boxShadow: '0 4px 12px rgba(63, 81, 181, 0.2)',
+              '&:hover': {
+                boxShadow: '0 6px 14px rgba(63, 81, 181, 0.3)'
+              }
+            }}
+          >
+            Go Back
+          </Button>
+        </Card>
+      </Box>
+    );
+  }
+
   return (
     <Box sx={{ p: 3 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Typography variant="h4" component="h1">
-          User Role Management
-        </Typography>
         <Button 
           variant="contained" 
           color="primary" 
@@ -227,7 +348,7 @@ const RoleManagement = () => {
         </Alert>
       )}
 
-      <Box sx={{ mb: 3 }}>
+      <Box sx={{ mb: 3 ,width:'500px' }}>
         <TextField
           fullWidth
           variant="outlined"
@@ -264,12 +385,22 @@ const RoleManagement = () => {
                   </TableCell>
                   <TableCell>{user.email}</TableCell>
                   <TableCell>
-                    <Chip
-                      icon={roleIcons[user.role]}
-                      label={user.role}
-                      color={roleColors[user.role]}
-                      variant="outlined"
-                    />
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                      <Chip
+                        icon={roleIcons[user.role]}
+                        label={user.role}
+                        color={roleColors[user.role]}
+                        variant="outlined"
+                      />
+                      {user.role === 'sub-admin' && user.industry && (
+                        <Chip
+                          size="small"
+                          label={`Industry: ${user.industry}`}
+                          variant="outlined"
+                          color="info"
+                        />
+                      )}
+                    </Box>
                   </TableCell>
                   <TableCell align="right">
                     <Tooltip title="Change role">
@@ -327,6 +458,11 @@ const RoleManagement = () => {
             <Typography variant="body2" color="textSecondary" gutterBottom>
               Current Role: {selectedUser?.role}
             </Typography>
+            {selectedUser?.role === 'sub-admin' && selectedUser?.industry && (
+              <Typography variant="body2" color="textSecondary" gutterBottom>
+                Current Industry: {selectedUser?.industry}
+              </Typography>
+            )}
             
             <FormControl fullWidth sx={{ mt: 3 }}>
               <InputLabel>Select New Role</InputLabel>
@@ -340,7 +476,7 @@ const RoleManagement = () => {
                   <MenuItem 
                     key={role} 
                     value={role}
-                    disabled={role === 'admin' && currentUser?.role !== 'admin'}
+                    disabled={(role === 'admin' || role === 'sub-admin') && currentUser?.role !== 'admin'}
                   >
                     <Box sx={{ display: 'flex', alignItems: 'center' }}>
                       {roleIcons[role]}
@@ -352,6 +488,25 @@ const RoleManagement = () => {
                 ))}
               </Select>
             </FormControl>
+            
+            {newRole === 'sub-admin' && (
+              <FormControl fullWidth sx={{ mt: 2 }}>
+                <InputLabel>Select Industry</InputLabel>
+                <Select
+                  value={selectedIndustry}
+                  label="Select Industry"
+                  onChange={(e) => setSelectedIndustry(e.target.value)}
+                  fullWidth
+                  required
+                >
+                  {industries.map((industry) => (
+                    <MenuItem key={industry} value={industry}>
+                      {industry}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            )}
           </Box>
         </DialogContent>
         <DialogActions>
@@ -362,7 +517,7 @@ const RoleManagement = () => {
             onClick={confirmRoleChange} 
             color="primary" 
             variant="contained"
-            disabled={!newRole || newRole === selectedUser?.role}
+            disabled={!newRole || newRole === selectedUser?.role || (newRole === 'sub-admin' && !selectedIndustry)}
           >
             Update Role
           </Button>

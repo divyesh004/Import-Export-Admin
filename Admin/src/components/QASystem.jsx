@@ -32,6 +32,7 @@ import {
   ListItemAvatar,
   ListItemText
 } from '@mui/material';
+import { useAuth } from '../services/AuthContext';
 import { qaApi } from '../services/api';
 import {
   Add as AddIcon,
@@ -48,6 +49,7 @@ import {
 } from '@mui/icons-material';
 
 const QASystem = () => {
+  const { user } = useAuth();
   const [questions, setQuestions] = useState([]);
   const [answers, setAnswers] = useState({});
   const [openDialog, setOpenDialog] = useState(false);
@@ -66,18 +68,33 @@ const QASystem = () => {
     question: '',
     answer: '',
   });
+  
+  // Check if user is a sub-admin
+  const isSubAdmin = user?.role === 'sub-admin';
 
   const fetchQuestions = useCallback(async () => {
     try {
       setLoading(true);
       setError('');
+      // Determine which API endpoint to use based on user role
       const response = await qaApi.getProductQuestions({
         page,
         pageSize,
         status: filterStatus !== 'all' ? filterStatus : undefined,
-        search: searchQuery || undefined
+        search: searchQuery || undefined,
+        // Pass industry parameter for sub-admin users
+        industry: isSubAdmin ? user?.industry : undefined
       });
-      setQuestions(response.questions);
+      
+      // For sub-admin, filter questions by industry on client-side as well for extra security
+      let filteredQuestions = response.questions;
+      if (isSubAdmin && user?.industry) {
+        filteredQuestions = filteredQuestions.filter(q => 
+          q.products?.industry === user.industry
+        );
+      }
+      
+      setQuestions(filteredQuestions);
       setTotalQuestions(response.total);
       
       // Fetch answers for each question
@@ -193,18 +210,11 @@ const QASystem = () => {
     <Box sx={{ flexGrow: 1, p: 3 }}>
       <Grid container spacing={3}>
         <Grid item xs={12}>
-          <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+          <Box display="flex" justifyContent="space-between" alignItems="center" mb={2} mt={2}>
             <Typography variant="h4" component="h1" fontWeight="bold">
-              Q&A Management
+               {isSubAdmin && user?.industry ? `- ${user.industry} Industry` : ''}
             </Typography>
-            <Button
-              variant="contained"
-              startIcon={<AddIcon />}
-              onClick={() => handleOpenDialog('question')}
-              sx={{ borderRadius: 2 }}
-            >
-              New Question
-            </Button>
+
           </Box>
           
           {error && (

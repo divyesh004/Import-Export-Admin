@@ -25,7 +25,15 @@ const productService = {
   // Get pending products
   getPendingProducts: async () => {
     try {
-      const response = await axios.get(`${API_URL}products/pending`, {
+      // Get user role from localStorage
+      const userRole = localStorage.getItem('userRole');
+      
+      // Use different endpoint for sub-admin to get industry-specific products
+      const endpoint = userRole === 'sub-admin' 
+        ? `${API_URL}products/industry/pending` 
+        : `${API_URL}products/pending`;
+      
+      const response = await axios.get(endpoint, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('token')}`,
         },
@@ -44,7 +52,15 @@ const productService = {
   // Get rejected products
   getRejectedProducts: async () => {
     try {
-      const response = await axios.get(`${API_URL}products/rejected`, {
+      // Get user role from localStorage
+      const userRole = localStorage.getItem('userRole');
+      
+      // Use different endpoint for sub-admin to get industry-specific products
+      const endpoint = userRole === 'sub-admin' 
+        ? `${API_URL}products/industry/rejected` 
+        : `${API_URL}products/rejected`;
+      
+      const response = await axios.get(endpoint, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('token')}`,
         },
@@ -63,7 +79,15 @@ const productService = {
   // Get approved products
   getApprovedProducts: async () => {
     try {
-      const response = await axios.get(`${API_URL}products/approved`, {
+      // Get user role from localStorage
+      const userRole = localStorage.getItem('userRole');
+      
+      // Use different endpoint for sub-admin to get industry-specific products
+      const endpoint = userRole === 'sub-admin' 
+        ? `${API_URL}products/industry/approved` 
+        : `${API_URL}products/approved`;
+      
+      const response = await axios.get(endpoint, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('token')}`,
         },

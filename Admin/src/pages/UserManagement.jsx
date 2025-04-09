@@ -8,14 +8,9 @@ import {
   Chip,
   TextField,
   MenuItem,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
   Grid,
   Card,
   CardContent,
-  CardActions,
   Avatar,
   Divider,
   CircularProgress,
@@ -177,18 +172,6 @@ const UserManagement = () => {
 
   return (
     <Box sx={{ p: { xs: 2, sm: 3 }, mt: { xs: 6, sm: 8 } }}>
-      <Paper elevation={0} sx={{ 
-        p: 3, 
-        mb: 4, 
-        borderRadius: 3,
-        background: 'linear-gradient(135deg, #3f51b5 0%, #5c6bc0 100%)',
-        color: 'white',
-        boxShadow: '0 8px 32px rgba(63, 81, 181, 0.2)',
-      }}>
-        <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
-          User Management
-        </Typography>
-      </Paper>
 
       <Box sx={{ mb: 4, display: 'flex', gap: 2, flexWrap: 'wrap' }}>
         <TextField
