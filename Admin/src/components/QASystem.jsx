@@ -172,6 +172,13 @@ const QASystem = () => {
   };
 
   const handleDelete = async (id) => {
+    // Check if user is a sub-admin - prevent deletion if they are
+    if (isSubAdmin) {
+      setError('Sub-admin users do not have permission to delete questions. Please contact an administrator.');
+      setTimeout(() => setError(''), 5000);
+      return;
+    }
+    
     if (!window.confirm('Are you sure you want to delete this question?')) return;
     
     try {

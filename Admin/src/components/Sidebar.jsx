@@ -102,7 +102,7 @@ const MenuItem = memo(({ item, isActive, onClick, index }) => {
               position: 'absolute',
               top: 0,
               left: 0,
-              width: '5px',
+              width: '50px',
               height: '100%',
               backgroundColor: '#fff',
               opacity: 0.5,
