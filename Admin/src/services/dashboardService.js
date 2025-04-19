@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
+const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/';
 
 const dashboardService = {
   // Get dashboard statistics including total customers, total sellers, pending questions, and monthly income
@@ -9,7 +9,7 @@ const dashboardService = {
       const token = localStorage.getItem('token');
       if (!token) throw new Error('Please login first');
 
-      const response = await axios.get(`${API_URL}/analytics/dashboard`, {
+      const response = await axios.get(`${API_URL}analytics/dashboard`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       return response.data;
@@ -25,7 +25,7 @@ const dashboardService = {
       const token = localStorage.getItem('token');
       if (!token) throw new Error('Please login first');
 
-      const response = await axios.get(`${API_URL}/analytics/activities`, {
+      const response = await axios.get(`${API_URL}analytics/activities`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       return response.data;

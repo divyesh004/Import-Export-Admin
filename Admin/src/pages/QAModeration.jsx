@@ -5,16 +5,17 @@ import {
   Paper,
   Tabs,
   Tab,
-  Grid,
-  Card,
-  CardContent,
-  CardActions,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
   Button,
   Chip,
   Avatar,
   CircularProgress,
   Alert,
-  Divider,
   Dialog,
   DialogTitle,
   DialogContent,
@@ -22,7 +23,11 @@ import {
   TextField,
   useTheme,
   alpha,
-  useMediaQuery
+  useMediaQuery,
+  TablePagination,
+  IconButton,
+  Tooltip,
+  Grid
 } from '@mui/material';
 import {
   CheckCircle as CheckCircleIcon,
@@ -31,7 +36,9 @@ import {
   Person as PersonIcon,
   Visibility as VisibilityIcon,
   Pending as PendingIcon,
-  HourglassEmpty as HourglassEmptyIcon
+  HourglassEmpty as HourglassEmptyIcon,
+  Edit as EditIcon,
+  Delete as DeleteIcon
 } from '@mui/icons-material';
 import { useAuth } from '../services/AuthContext';
 import qaService from '../services/qaService';
@@ -40,7 +47,6 @@ const QAModeration = () => {
   const { user } = useAuth();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-  const isTablet = useMediaQuery(theme.breakpoints.between('sm', 'md'));
   const [activeTab, setActiveTab] = useState(0);
   const [pendingQuestions, setPendingQuestions] = useState([]);
   const [pendingAnswers, setPendingAnswers] = useState([]);
@@ -49,8 +55,9 @@ const QAModeration = () => {
   const [success, setSuccess] = useState('');
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
-  const [answerDialogOpen, setAnswerDialogOpen] = useState(false);
-  const [answerText, setAnswerText] = useState('');
+
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
 
   const isSubAdmin = user?.role === 'sub-admin';
 
@@ -76,11 +83,22 @@ const QAModeration = () => {
     fetchPendingItems();
   }, []);
 
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage);
+  };
+
+  const handleChangeRowsPerPage = (event) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
+
   const handleTabChange = (event, newValue) => {
     setActiveTab(newValue);
+    setPage(0);
   };
 
   const handleViewItem = (item) => {
+    console.log('Selected item for viewing:', item); // Add logging to debug
     setSelectedItem(item);
     setViewDialogOpen(true);
   };
@@ -90,33 +108,7 @@ const QAModeration = () => {
     setSelectedItem(null);
   };
 
-  const handleOpenAnswerDialog = (question) => {
-    setSelectedItem(question);
-    setAnswerDialogOpen(true);
-  };
 
-  const handleCloseAnswerDialog = () => {
-    setAnswerDialogOpen(false);
-    setSelectedItem(null);
-    setAnswerText('');
-  };
-
-  const handleSubmitAnswer = async () => {
-    if (!answerText.trim() || !selectedItem) return;
-
-    try {
-      setLoading(true);
-      await qaService.createAnswer(selectedItem.id, answerText);
-      setSuccess('Answer submitted successfully!');
-      handleCloseAnswerDialog();
-      fetchPendingItems();
-    } catch (err) {
-      setError('Failed to submit answer. Please try again.');
-      console.error('Error submitting answer:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleUpdateQuestionStatus = async (questionId, status) => {
     try {
@@ -156,10 +148,16 @@ const QAModeration = () => {
     });
   };
 
+  const truncateText = (text, length = 50) => {
+    if (!text) return '';
+    return text.length > length ? `${text.substring(0, length)}...` : text;
+  };
+
   return (
-    <Box sx={{  p: { xs: 2, sm: 3 }, mt: { xs: 6, sm: 8 },
+    <Box sx={{  
+      p: { xs: 2, sm: 3 }, 
+      mt: { xs: 6, sm: 8 },
       flexGrow: 1, 
-      p: isMobile ? 1 : 3,
       background: `linear-gradient(135deg, ${alpha(theme.palette.primary.light, 0.05)} 0%, ${alpha(theme.palette.secondary.light, 0.05)} 100%)`,
       minHeight: '100vh'
     }}>
@@ -311,341 +309,316 @@ const QAModeration = () => {
           <>
             {/* Pending Questions Tab */}
             {activeTab === 0 && (
-              <Grid container spacing={isMobile ? 1 : 3}>
+              <Box>
                 {pendingQuestions.length === 0 ? (
-                  <Grid item xs={12}>
-                    <Paper 
-                      elevation={0} 
+                  <Paper 
+                    elevation={0} 
+                    sx={{ 
+                      p: isMobile ? 3 : 6, 
+                      textAlign: 'center',
+                      borderRadius: 3,
+                      bgcolor: alpha(theme.palette.background.default, 0.6)
+                    }}
+                  >
+                    <HourglassEmptyIcon 
                       sx={{ 
-                        p: isMobile ? 3 : 6, 
-                        textAlign: 'center',
-                        borderRadius: 3,
-                        bgcolor: alpha(theme.palette.background.default, 0.6)
-                      }}
-                    >
-                      <HourglassEmptyIcon 
-                        sx={{ 
-                          fontSize: isMobile ? 40 : 60,
-                          color: theme.palette.text.disabled,
-                          mb: 2 
-                        }} 
-                      />
-                      <Typography variant={isMobile ? "body1" : "h6"} color="textSecondary">
-                        No pending questions to moderate
-                      </Typography>
-                      <Typography variant="body2" color="textSecondary" sx={{ mt: 1 }}>
-                        All caught up! New questions will appear here when submitted.
-                      </Typography>
-                    </Paper>
-                  </Grid>
+                        fontSize: isMobile ? 40 : 60,
+                        color: theme.palette.text.disabled,
+                        mb: 2 
+                      }} 
+                    />
+                    <Typography variant={isMobile ? "body1" : "h6"} color="textSecondary">
+                      No pending questions to moderate
+                    </Typography>
+                    <Typography variant="body2" color="textSecondary" sx={{ mt: 1 }}>
+                      All caught up! New questions will appear here when submitted.
+                    </Typography>
+                  </Paper>
                 ) : (
-                  pendingQuestions.map((question) => (
-                    <Grid item xs={12} sm={6} md={isTablet ? 6 : 4} key={question.id}>
-                      <Card 
-                        elevation={0}
-                        sx={{ 
-                          borderRadius: 3,
-                          height: '100%',
-                          display: 'flex',
-                          flexDirection: 'column',
-                          transition: 'all 0.3s ease',
-                          border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
-                          '&:hover': {
-                            transform: 'translateY(-4px)',
-                            boxShadow: theme.shadows[4],
-                            borderColor: alpha(theme.palette.primary.main, 0.2)
-                          }
-                        }}
-                      >
-                        <CardContent sx={{ flexGrow: 1 }}>
-                          <Typography 
-                            variant={isMobile ? "subtitle1" : "h6"} 
-                            gutterBottom 
-                            noWrap={!isMobile}
-                            sx={{
-                              fontWeight: 600,
-                              color: theme.palette.mode === 'dark' ? theme.palette.primary.light : theme.palette.primary.dark
-                            }}
-                          >
-                            {question.question}
-                          </Typography>
-                          <Box display="flex" alignItems="center" gap={isMobile ? 1 : 2} mb={2} flexWrap="wrap">
-                            <Box display="flex" alignItems="center">
-                              <Avatar 
-                                sx={{ 
-                                  width: isMobile ? 24 : 28, 
-                                  height: isMobile ? 24 : 28, 
-                                  mr: 1,
-                                  bgcolor: theme.palette.secondary.main,
-                                  color: theme.palette.secondary.contrastText
-                                }}
-                              >
-                                {question.users?.name?.charAt(0) || <PersonIcon fontSize="small" />}
-                              </Avatar>
-                              <Typography variant="body2" color="textSecondary">
-                                {question.users?.name || 'Anonymous'}
-                              </Typography>
-                            </Box>
-                            <Typography variant="body2" color="textSecondary">
-                              {formatDate(question.created_at || question.date)}
-                            </Typography>
-                          </Box>
-                          <Chip
-                            icon={<PendingIcon fontSize="small" />}
-                            label="Pending"
-                            color="warning"
-                            size="small"
-                            variant="outlined"
-                            sx={{ 
-                              fontWeight: 500,
-                              borderStyle: 'dashed'
-                            }}
-                          />
-                        </CardContent>
-                        <Divider sx={{ opacity: 0.5 }} />
-                        <CardActions sx={{ 
-                          justifyContent: 'space-between', 
-                          p: isMobile ? 1 : 2,
-                          flexDirection: isMobile ? 'column' : 'row',
-                          gap: isMobile ? 1 : 0
-                        }}>
-                          <Button
-                            size="small"
-                            startIcon={<VisibilityIcon />}
-                            onClick={() => handleViewItem(question)}
-                            sx={{
-                              color: theme.palette.text.secondary,
-                              '&:hover': {
-                                color: theme.palette.primary.main
-                              },
-                              minWidth: isMobile ? '100%' : 'auto'
-                            }}
-                          >
-                            View Details
-                          </Button>
-                          <Box sx={{ 
-                            display: 'flex', 
-                            gap: isMobile ? 1 : 0,
-                            width: isMobile ? '100%' : 'auto'
-                          }}>
-                            <Button
-                              size="small"
-                              variant="contained"
-                              color="success"
-                              startIcon={<CheckCircleIcon />}
-                              onClick={() => handleUpdateQuestionStatus(question.id, 'approved')}
-                              sx={{ 
-                                mr: isMobile ? 0 : 1,
-                                borderRadius: 2,
-                                textTransform: 'none',
-                                boxShadow: 'none',
-                                '&:hover': {
-                                  boxShadow: `0 2px 8px ${alpha(theme.palette.success.main, 0.3)}`
-                                },
-                                flex: isMobile ? 1 : 'none',
-                                minWidth: isMobile ? 0 : 'auto'
-                              }}
-                            >
-                              {isMobile ? 'Approve' : 'Approve'}
-                            </Button>
-                            <Button
-                              size="small"
-                              variant="outlined"
-                              color="error"
-                              startIcon={<CancelIcon />}
-                              onClick={() => handleUpdateQuestionStatus(question.id, 'rejected')}
-                              sx={{
-                                borderRadius: 2,
-                                textTransform: 'none',
-                                flex: isMobile ? 1 : 'none',
-                                minWidth: isMobile ? 0 : 'auto'
-                              }}
-                            >
-                              {isMobile ? 'Reject' : 'Reject'}
-                            </Button>
-                          </Box>
-                        </CardActions>
-                      </Card>
-                    </Grid>
-                  ))
+                  <>
+                    <TableContainer component={Paper} elevation={0} sx={{ borderRadius: 3, mb: 2 }}>
+                      <Table>
+                        <TableHead>
+                          <TableRow sx={{ bgcolor: alpha(theme.palette.primary.main, 0.1) }}>
+                            <TableCell sx={{ fontWeight: 600 }}>Question</TableCell>
+                            <TableCell sx={{ fontWeight: 600 }}>Asked By</TableCell>
+                            <TableCell sx={{ fontWeight: 600 }}>Date</TableCell>
+                            <TableCell sx={{ fontWeight: 600 }}>Industry</TableCell>
+                            <TableCell sx={{ fontWeight: 600 }}>Status</TableCell>
+                            <TableCell sx={{ fontWeight: 600 }} align="right">Actions</TableCell>
+                          </TableRow>
+                        </TableHead>
+                        <TableBody>
+                          {pendingQuestions
+                            .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                            .map((question) => (
+                              <TableRow key={question.id} hover>
+                                <TableCell>
+                                  <Typography fontWeight={500}>
+                                    {truncateText(question.question, isMobile ? 30 : 50)}
+                                  </Typography>
+                                </TableCell>
+                                <TableCell>
+                                  <Box display="flex" alignItems="center" gap={1}>
+                                    <Avatar 
+                                      sx={{ 
+                                        width: 24, 
+                                        height: 24,
+                                        bgcolor: theme.palette.secondary.main,
+                                        fontSize: '0.8rem'
+                                      }}
+                                    >
+                                      {question.users?.name?.charAt(0) || <PersonIcon fontSize="small" />}
+                                    </Avatar>
+                                    <Typography>
+                                      {question.users?.name || 'Anonymous'}
+                                    </Typography>
+                                  </Box>
+                                </TableCell>
+                                <TableCell>{formatDate(question.created_at || question.date)}</TableCell>
+                                <TableCell>
+                                  <Chip
+                                    label={question.industry || 'General'}
+                                    size="small"
+                                    color="info"
+                                    variant="outlined"
+                                  />
+                                </TableCell>
+                                <TableCell>
+                                  <Chip
+                                    icon={<PendingIcon fontSize="small" />}
+                                    label="Pending"
+                                    color="warning"
+                                    size="small"
+                                    variant="outlined"
+                                    sx={{ fontWeight: 500 }}
+                                  />
+                                </TableCell>
+                                <TableCell align="right">
+                                  <Box display="flex" gap={1} justifyContent="flex-end">
+                                    <Tooltip title="View Details">
+                                      <IconButton
+                                        size="small"
+                                        onClick={() => handleViewItem(question)}
+                                        sx={{
+                                          color: theme.palette.text.secondary,
+                                          '&:hover': {
+                                            color: theme.palette.primary.main,
+                                            backgroundColor: alpha(theme.palette.primary.main, 0.1)
+                                          }
+                                        }}
+                                      >
+                                        <VisibilityIcon fontSize="small" />
+                                      </IconButton>
+                                    </Tooltip>
+
+                                    <Tooltip title="Approve">
+                                      <IconButton
+                                        size="small"
+                                        onClick={() => handleUpdateQuestionStatus(question.id, 'approved')}
+                                        sx={{
+                                          color: theme.palette.success.main,
+                                          '&:hover': {
+                                            backgroundColor: alpha(theme.palette.success.main, 0.1)
+                                          }
+                                        }}
+                                      >
+                                        <CheckCircleIcon fontSize="small" />
+                                      </IconButton>
+                                    </Tooltip>
+                                    <Tooltip title="Reject">
+                                      <IconButton
+                                        size="small"
+                                        onClick={() => handleUpdateQuestionStatus(question.id, 'rejected')}
+                                        sx={{
+                                          color: theme.palette.error.main,
+                                          '&:hover': {
+                                            backgroundColor: alpha(theme.palette.error.main, 0.1)
+                                          }
+                                        }}
+                                      >
+                                        <CancelIcon fontSize="small" />
+                                      </IconButton>
+                                    </Tooltip>
+                                  </Box>
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                        </TableBody>
+                      </Table>
+                    </TableContainer>
+                    <TablePagination
+                      rowsPerPageOptions={[5, 10, 25]}
+                      component="div"
+                      count={pendingQuestions.length}
+                      rowsPerPage={rowsPerPage}
+                      page={page}
+                      onPageChange={handleChangePage}
+                      onRowsPerPageChange={handleChangeRowsPerPage}
+                      sx={{
+                        '& .MuiTablePagination-toolbar': {
+                          paddingLeft: 0
+                        }
+                      }}
+                    />
+                  </>
                 )}
-              </Grid>
+              </Box>
             )}
 
             {/* Pending Answers Tab */}
             {activeTab === 1 && (
-              <Grid container spacing={isMobile ? 1 : 3}>
+              <Box>
                 {pendingAnswers.length === 0 ? (
-                  <Grid item xs={12}>
-                    <Paper 
-                      elevation={0} 
+                  <Paper 
+                    elevation={0} 
+                    sx={{ 
+                      p: isMobile ? 3 : 6, 
+                      textAlign: 'center',
+                      borderRadius: 3,
+                      bgcolor: alpha(theme.palette.background.default, 0.6)
+                    }}
+                  >
+                    <HourglassEmptyIcon 
                       sx={{ 
-                        p: isMobile ? 3 : 6, 
-                        textAlign: 'center',
-                        borderRadius: 3,
-                        bgcolor: alpha(theme.palette.background.default, 0.6)
-                      }}
-                    >
-                      <HourglassEmptyIcon 
-                        sx={{ 
-                          fontSize: isMobile ? 40 : 60,
-                          color: theme.palette.text.disabled,
-                          mb: 2 
-                        }} 
-                      />
-                      <Typography variant={isMobile ? "body1" : "h6"} color="textSecondary">
-                        No pending answers to moderate
-                      </Typography>
-                      <Typography variant="body2" color="textSecondary" sx={{ mt: 1 }}>
-                        All answers have been reviewed. New answers will appear here when submitted.
-                      </Typography>
-                    </Paper>
-                  </Grid>
+                        fontSize: isMobile ? 40 : 60,
+                        color: theme.palette.text.disabled,
+                        mb: 2 
+                      }} 
+                    />
+                    <Typography variant={isMobile ? "body1" : "h6"} color="textSecondary">
+                      No pending answers to moderate
+                    </Typography>
+                    <Typography variant="body2" color="textSecondary" sx={{ mt: 1 }}>
+                      All answers have been reviewed. New answers will appear here when submitted.
+                    </Typography>
+                  </Paper>
                 ) : (
-                  pendingAnswers.map((answer) => (
-                    <Grid item xs={12} key={answer.id}>
-                      <Card 
-                        elevation={0}
-                        sx={{ 
-                          borderRadius: 3,
-                          height: '100%',
-                          display: 'flex',
-                          flexDirection: 'column',
-                          transition: 'all 0.3s ease',
-                          border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
-                          '&:hover': {
-                            transform: 'translateY(-4px)',
-                            boxShadow: theme.shadows[4],
-                            borderColor: alpha(theme.palette.secondary.main, 0.2)
-                          }
-                        }}
-                      >
-                        <CardContent sx={{ flexGrow: 1 }}>
-                          <Typography 
-                            variant={isMobile ? "subtitle1" : "subtitle1"} 
-                            gutterBottom 
-                            fontWeight={600}
-                            sx={{
-                              color: theme.palette.mode === 'dark' ? theme.palette.secondary.light : theme.palette.secondary.dark
-                            }}
-                          >
-                            Answer to: {answer.question?.question || 'Question not available'}
-                          </Typography>
-                          <Paper 
-                            elevation={0} 
-                            sx={{ 
-                              p: isMobile ? 1 : 2, 
-                              mb: 2, 
-                              borderRadius: 2,
-                              bgcolor: alpha(theme.palette.background.default, 0.5),
-                              borderLeft: `4px solid ${theme.palette.primary.main}`
-                            }}
-                          >
-                            <Typography variant="body2" paragraph>
-                              {answer.answer}
-                            </Typography>
-                          </Paper>
-                          <Box display="flex" alignItems="center" gap={isMobile ? 1 : 2} flexWrap="wrap">
-                            <Box display="flex" alignItems="center">
-                              <Avatar 
-                                sx={{ 
-                                  width: isMobile ? 24 : 28, 
-                                  height: isMobile ? 24 : 28, 
-                                  mr: 1,
-                                  bgcolor: theme.palette.info.main,
-                                  color: theme.palette.info.contrastText
-                                }}
-                              >
-                                {answer.users?.name?.charAt(0) || <PersonIcon fontSize="small" />}
-                              </Avatar>
-                              <Typography variant="body2" color="textSecondary">
-                                {answer.users?.name || 'Anonymous'}
-                              </Typography>
-                            </Box>
-                            <Typography variant="body2" color="textSecondary">
-                              {formatDate(answer.created_at)}
-                            </Typography>
-                            <Chip
-                              icon={<PendingIcon fontSize="small" />}
-                              label="Pending"
-                              color="warning"
-                              size="small"
-                              variant="outlined"
-                              sx={{ 
-                                fontWeight: 500,
-                                borderStyle: 'dashed'
-                              }}
-                            />
-                          </Box>
-                        </CardContent>
-                        <Divider sx={{ opacity: 0.5 }} />
-                        <CardActions sx={{ 
-                          justifyContent: 'space-between', 
-                          p: isMobile ? 1 : 2,
-                          flexDirection: isMobile ? 'column' : 'row',
-                          gap: isMobile ? 1 : 0
-                        }}>
-                          <Button
-                            size="small"
-                            startIcon={<VisibilityIcon />}
-                            onClick={() => handleViewItem(answer)}
-                            sx={{
-                              color: theme.palette.text.secondary,
-                              '&:hover': {
-                                color: theme.palette.secondary.main
-                              },
-                              minWidth: isMobile ? '100%' : 'auto'
-                            }}
-                          >
-                            View Details
-                          </Button>
-                          <Box sx={{ 
-                            display: 'flex', 
-                            gap: isMobile ? 1 : 0,
-                            width: isMobile ? '100%' : 'auto'
-                          }}>
-                            <Button
-                              size="small"
-                              variant="contained"
-                              color="success"
-                              startIcon={<CheckCircleIcon />}
-                              onClick={() => handleUpdateAnswerStatus(answer.id, 'approved')}
-                              sx={{ 
-                                mr: isMobile ? 0 : 1,
-                                borderRadius: 2,
-                                textTransform: 'none',
-                                boxShadow: 'none',
-                                '&:hover': {
-                                  boxShadow: `0 2px 8px ${alpha(theme.palette.success.main, 0.3)}`
-                                },
-                                flex: isMobile ? 1 : 'none',
-                                minWidth: isMobile ? 0 : 'auto'
-                              }}
-                            >
-                              {isMobile ? 'Approve' : 'Approve'}
-                            </Button>
-                            <Button
-                              size="small"
-                              variant="outlined"
-                              color="error"
-                              startIcon={<CancelIcon />}
-                              onClick={() => handleUpdateAnswerStatus(answer.id, 'rejected')}
-                              sx={{
-                                borderRadius: 2,
-                                textTransform: 'none',
-                                flex: isMobile ? 1 : 'none',
-                                minWidth: isMobile ? 0 : 'auto'
-                              }}
-                            >
-                              {isMobile ? 'Reject' : 'Reject'}
-                            </Button>
-                          </Box>
-                        </CardActions>
-                      </Card>
-                    </Grid>
-                  ))
+                  <>
+                    <TableContainer component={Paper} elevation={0} sx={{ borderRadius: 3, mb: 2 }}>
+                      <Table>
+                        <TableHead>
+                          <TableRow sx={{ bgcolor: alpha(theme.palette.secondary.main, 0.1) }}>
+                            <TableCell sx={{ fontWeight: 600 }}>Answer</TableCell>
+                            <TableCell sx={{ fontWeight: 600 }}>Question</TableCell>
+                            <TableCell sx={{ fontWeight: 600 }}>Answered By</TableCell>
+                            <TableCell sx={{ fontWeight: 600 }}>Date</TableCell>
+                            <TableCell sx={{ fontWeight: 600 }}>Status</TableCell>
+                            <TableCell sx={{ fontWeight: 600 }} align="right">Actions</TableCell>
+                          </TableRow>
+                        </TableHead>
+                        <TableBody>
+                          {pendingAnswers
+                            .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                            .map((answer) => (
+                              <TableRow key={answer.id} hover>
+                                <TableCell>
+                                  <Typography>
+                                    {truncateText(answer.answer, isMobile ? 30 : 50)}
+                                  </Typography>
+                                </TableCell>
+                                <TableCell>
+                                  <Typography fontWeight={500}>
+                                    {truncateText(answer.question?.question || 'Question not available', isMobile ? 30 : 50)}
+                                  </Typography>
+                                </TableCell>
+                                <TableCell>
+                                  <Box display="flex" alignItems="center" gap={1}>
+                                    <Avatar 
+                                      sx={{ 
+                                        width: 24, 
+                                        height: 24,
+                                        bgcolor: theme.palette.info.main,
+                                        fontSize: '0.8rem'
+                                      }}
+                                    >
+                                      {answer.users?.name?.charAt(0) || <PersonIcon fontSize="small" />}
+                                    </Avatar>
+                                    <Typography>
+                                      {answer.users?.name || 'Anonymous'}
+                                    </Typography>
+                                  </Box>
+                                </TableCell>
+                                <TableCell>{formatDate(answer.created_at)}</TableCell>
+                                <TableCell>
+                                  <Chip
+                                    icon={<PendingIcon fontSize="small" />}
+                                    label="Pending"
+                                    color="warning"
+                                    size="small"
+                                    variant="outlined"
+                                    sx={{ fontWeight: 500 }}
+                                  />
+                                </TableCell>
+                                <TableCell align="right">
+                                  <Box display="flex" gap={1} justifyContent="flex-end">
+                                    <Tooltip title="View Details">
+                                      <IconButton
+                                        size="small"
+                                        onClick={() => handleViewItem(answer)}
+                                        sx={{
+                                          color: theme.palette.text.secondary,
+                                          '&:hover': {
+                                            color: theme.palette.secondary.main,
+                                            backgroundColor: alpha(theme.palette.secondary.main, 0.1)
+                                          }
+                                        }}
+                                      >
+                                        <VisibilityIcon fontSize="small" />
+                                      </IconButton>
+                                    </Tooltip>
+                                    <Tooltip title="Approve">
+                                      <IconButton
+                                        size="small"
+                                        onClick={() => handleUpdateAnswerStatus(answer.id, 'approved')}
+                                        sx={{
+                                          color: theme.palette.success.main,
+                                          '&:hover': {
+                                            backgroundColor: alpha(theme.palette.success.main, 0.1)
+                                          }
+                                        }}
+                                      >
+                                        <CheckCircleIcon fontSize="small" />
+                                      </IconButton>
+                                    </Tooltip>
+                                    <Tooltip title="Reject">
+                                      <IconButton
+                                        size="small"
+                                        onClick={() => handleUpdateAnswerStatus(answer.id, 'rejected')}
+                                        sx={{
+                                          color: theme.palette.error.main,
+                                          '&:hover': {
+                                            backgroundColor: alpha(theme.palette.error.main, 0.1)
+                                          }
+                                        }}
+                                      >
+                                        <CancelIcon fontSize="small" />
+                                      </IconButton>
+                                    </Tooltip>
+                                  </Box>
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                        </TableBody>
+                      </Table>
+                    </TableContainer>
+                    <TablePagination
+                      rowsPerPageOptions={[5, 10, 25]}
+                      component="div"
+                      count={pendingAnswers.length}
+                      rowsPerPage={rowsPerPage}
+                      page={page}
+                      onPageChange={handleChangePage}
+                      onRowsPerPageChange={handleChangeRowsPerPage}
+                      sx={{
+                        '& .MuiTablePagination-toolbar': {
+                          paddingLeft: 0
+                        }
+                      }}
+                    />
+                  </>
                 )}
-              </Grid>
+              </Box>
             )}
           </>
         )}
@@ -693,7 +666,8 @@ const QAModeration = () => {
         <DialogContent sx={{ p: isMobile ? 2 : 4 }}>
           {selectedItem && (
             <>
-              {selectedItem.question && (
+              {/* Question Details */}
+              {selectedItem.question && !selectedItem.answer && (
                 <>
                   <Typography variant={isMobile ? "subtitle1" : "h6"} gutterBottom fontWeight={600} sx={{ mb: 3 }}>
                     Question Content:
@@ -739,36 +713,35 @@ const QAModeration = () => {
                         {formatDate(selectedItem.created_at || selectedItem.date)}
                       </Typography>
                     </Grid>
+                    <Grid item xs={12} md={6}>
+                      <Typography variant="subtitle2" color="textSecondary" gutterBottom>
+                        Industry:
+                      </Typography>
+                      <Chip
+                        label={selectedItem.industry || 'General'}
+                        size="small"
+                        color="info"
+                        variant="outlined"
+                      />
+                    </Grid>
+                    <Grid item xs={12} md={6}>
+                      <Typography variant="subtitle2" color="textSecondary" gutterBottom>
+                        Status:
+                      </Typography>
+                      <Chip
+                        icon={<PendingIcon fontSize="small" />}
+                        label="Pending"
+                        color="warning"
+                        size="small"
+                        variant="outlined"
+                        sx={{ fontWeight: 500 }}
+                      />
+                    </Grid>
                   </Grid>
-                  {!selectedItem.answer && (
-                    <Box sx={{ mt: 4, textAlign: 'center' }}>
-                      <Button
-                        variant="contained"
-                        color="primary"
-                        onClick={() => {
-                          handleCloseViewDialog();
-                          handleOpenAnswerDialog(selectedItem);
-                        }}
-                        startIcon={<QuestionAnswerIcon />}
-                        sx={{
-                          borderRadius: 2,
-                          px: 4,
-                          py: isMobile ? 1 : 1.5,
-                          fontWeight: 600,
-                          boxShadow: `0 4px 12px ${alpha(theme.palette.primary.main, 0.2)}`,
-                          '&:hover': {
-                            boxShadow: `0 6px 16px ${alpha(theme.palette.primary.main, 0.3)}`
-                          },
-                          width: isMobile ? '100%' : 'auto'
-                        }}
-                      >
-                        Answer This Question
-                      </Button>
-                    </Box>
-                  )}
                 </>
               )}
 
+              {/* Answer Details */}
               {selectedItem.answer && (
                 <>
                   <Typography variant={isMobile ? "subtitle1" : "h6"} gutterBottom fontWeight={600} sx={{ mb: 3 }}>
@@ -786,7 +759,7 @@ const QAModeration = () => {
                       overflow: 'hidden'
                     }}
                   >
-                    <Typography variant="body1" fontWeight={500}>{selectedItem.question?.question || 'Question not available'}</Typography>
+                    <Typography variant="body1" fontWeight={500}>{selectedItem.question?.question || selectedItem.question || 'Question not available'}</Typography>
                     {selectedItem.question?.users && (
                       <Box display="flex" alignItems="center" gap={1} mt={2}>
                         <Avatar 
@@ -848,8 +821,21 @@ const QAModeration = () => {
                         Date Submitted:
                       </Typography>
                       <Typography fontWeight={500}>
-                        {formatDate(selectedItem.created_at)}
+                        {formatDate(selectedItem.created_at || selectedItem.date)}
                       </Typography>
+                    </Grid>
+                    <Grid item xs={12} md={6}>
+                      <Typography variant="subtitle2" color="textSecondary" gutterBottom>
+                        Status:
+                      </Typography>
+                      <Chip
+                        icon={<PendingIcon fontSize="small" />}
+                        label="Pending"
+                        color="warning"
+                        size="small"
+                        variant="outlined"
+                        sx={{ fontWeight: 500 }}
+                      />
                     </Grid>
                   </Grid>
                 </>
@@ -857,7 +843,85 @@ const QAModeration = () => {
             </>
           )}
         </DialogContent>
-        <DialogActions sx={{ p: isMobile ? 2 : 3 }}>
+        <DialogActions sx={{ p: isMobile ? 2 : 3, justifyContent: 'space-between' }}>
+          <Box>
+            {selectedItem && !selectedItem.answer && (
+              <Box display="flex" gap={1}>
+                <Button
+                  variant="contained"
+                  color="success"
+                  startIcon={<CheckCircleIcon />}
+                  onClick={() => {
+                    handleUpdateQuestionStatus(selectedItem.id, 'approved');
+                    handleCloseViewDialog();
+                  }}
+                  sx={{
+                    borderRadius: 2,
+                    px: 3,
+                    fontWeight: 500,
+                    boxShadow: 2
+                  }}
+                >
+                  Approve
+                </Button>
+                <Button
+                  variant="contained"
+                  color="error"
+                  startIcon={<CancelIcon />}
+                  onClick={() => {
+                    handleUpdateQuestionStatus(selectedItem.id, 'rejected');
+                    handleCloseViewDialog();
+                  }}
+                  sx={{
+                    borderRadius: 2,
+                    px: 3,
+                    fontWeight: 500,
+                    boxShadow: 2
+                  }}
+                >
+                  Reject
+                </Button>
+              </Box>
+            )}
+            {selectedItem && selectedItem.answer && (
+              <Box display="flex" gap={1}>
+                <Button
+                  variant="contained"
+                  color="success"
+                  startIcon={<CheckCircleIcon />}
+                  onClick={() => {
+                    handleUpdateAnswerStatus(selectedItem.id, 'approved');
+                    handleCloseViewDialog();
+                  }}
+                  sx={{
+                    borderRadius: 2,
+                    px: 3,
+                    fontWeight: 500,
+                    boxShadow: 2
+                  }}
+                >
+                  Approve
+                </Button>
+                <Button
+                  variant="contained"
+                  color="error"
+                  startIcon={<CancelIcon />}
+                  onClick={() => {
+                    handleUpdateAnswerStatus(selectedItem.id, 'rejected');
+                    handleCloseViewDialog();
+                  }}
+                  sx={{
+                    borderRadius: 2,
+                    px: 3,
+                    fontWeight: 500,
+                    boxShadow: 2
+                  }}
+                >
+                  Reject
+                </Button>
+              </Box>
+            )}
+          </Box>
           <Button 
             onClick={handleCloseViewDialog} 
             variant="outlined"
@@ -869,7 +933,7 @@ const QAModeration = () => {
               '&:hover': {
                 borderWidth: 2
               },
-              width: isMobile ? '100%' : 'auto'
+              width: isMobile ? 'auto' : 'auto'
             }}
           >
             Close
@@ -877,128 +941,7 @@ const QAModeration = () => {
         </DialogActions>
       </Dialog>
 
-      {/* Answer Dialog */}
-      <Dialog
-        open={answerDialogOpen}
-        onClose={handleCloseAnswerDialog}
-        maxWidth="md"
-        fullWidth
-        fullScreen={isMobile}
-        PaperProps={{ 
-          sx: { 
-            borderRadius: isMobile ? 0 : 3,
-            background: theme.palette.mode === 'dark' 
-              ? `linear-gradient(135deg, ${theme.palette.grey[900]} 0%, ${theme.palette.grey[800]} 100%)`
-              : `linear-gradient(135deg, ${theme.palette.background.paper} 0%, ${alpha(theme.palette.secondary.light, 0.05)} 100%)`
-          } 
-        }}
-      >
-        <DialogTitle 
-          sx={{ 
-            bgcolor: 'secondary.main', 
-            color: 'secondary.contrastText',
-            fontWeight: 600,
-            display: 'flex',
-            alignItems: 'center',
-            gap: 2,
-            py: isMobile ? 2 : 3
-          }}
-        >
-          <QuestionAnswerIcon fontSize={isMobile ? "medium" : "large"} />
-          <span>Answer Question</span>
-        </DialogTitle>
-        <DialogContent sx={{ p: isMobile ? 2 : 4 }}>
-          {selectedItem && (
-            <>
-              <Typography variant={isMobile ? "subtitle1" : "subtitle1"} fontWeight="medium" gutterBottom>
-                Question:
-              </Typography>
-              <Paper 
-                elevation={0} 
-                sx={{ 
-                  p: isMobile ? 1.5 : 3, 
-                  mb: isMobile ? 2 : 4, 
-                  borderRadius: 2,
-                  bgcolor: alpha(theme.palette.background.default, 0.5),
-                  borderLeft: `4px solid ${theme.palette.primary.main}`
-                }}
-              >
-                <Typography>{selectedItem.question}</Typography>
-              </Paper>
-              <TextField
-                autoFocus
-                margin="dense"
-                label="Your Answer"
-                type="text"
-                fullWidth
-                multiline
-                minRows={isMobile ? 4 : 6}
-                value={answerText}
-                onChange={(e) => setAnswerText(e.target.value)}
-                variant="outlined"
-                InputProps={{
-                  sx: {
-                    borderRadius: 2,
-                    '& fieldset': {
-                      borderWidth: 2
-                    },
-                    '&:hover fieldset': {
-                      borderColor: theme.palette.primary.main
-                    }
-                  }
-                }}
-                InputLabelProps={{
-                  sx: {
-                    fontWeight: 500,
-                    color: theme.palette.text.secondary
-                  }
-                }}
-              />
-            </>
-          )}
-        </DialogContent>
-        <DialogActions sx={{ p: isMobile ? 2 : 3 }}>
-          <Button 
-            onClick={handleCloseAnswerDialog} 
-            variant="outlined"
-            sx={{
-              borderRadius: 2,
-              px: 3,
-              fontWeight: 500,
-              borderWidth: 2,
-              '&:hover': {
-                borderWidth: 2
-              },
-              width: isMobile ? '100%' : 'auto'
-            }}
-          >
-            Cancel
-          </Button>
-          <Button
-            onClick={handleSubmitAnswer}
-            variant="contained"
-            color="secondary"
-            disabled={loading || !answerText.trim()}
-            startIcon={loading ? <CircularProgress size={20} color="inherit" /> : null}
-            sx={{
-              borderRadius: 2,
-              px: 4,
-              fontWeight: 600,
-              boxShadow: `0 4px 12px ${alpha(theme.palette.secondary.main, 0.2)}`,
-              '&:hover': {
-                boxShadow: `0 6px 16px ${alpha(theme.palette.secondary.main, 0.3)}`
-              },
-              '&.Mui-disabled': {
-                bgcolor: alpha(theme.palette.secondary.main, 0.5),
-                color: theme.palette.secondary.contrastText
-              },
-              width: isMobile ? '100%' : 'auto'
-            }}
-          >
-            Submit Answer
-          </Button>
-        </DialogActions>
-      </Dialog>
+
     </Box>
   );
 };
