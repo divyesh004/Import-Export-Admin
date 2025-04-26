@@ -22,6 +22,7 @@ import QASystem from './components/QASystem';
 import QAModeration from './pages/QAModeration';
 import ApprovedProducts from './pages/ApprovedProducts';
 import ProfilePage from './pages/Profile';
+import OrderManagement from './pages/OrderManagement';
 
 const theme = createTheme({
   palette: {
@@ -335,6 +336,14 @@ function App() {
                   element={
                     <PrivateRoute>
                       <ProfilePage />
+                    </PrivateRoute>
+                  }
+                />
+                <Route
+                  path="/orders"
+                  element={
+                    <PrivateRoute>
+                      <OrderManagement />
                     </PrivateRoute>
                   }
                 />

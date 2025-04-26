@@ -25,6 +25,9 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
+// Export the api instance as default
+export default api;
+
 // QA API methods
 export const qaApi = {
   // Get all product questions
