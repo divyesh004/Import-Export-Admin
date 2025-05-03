@@ -14,7 +14,8 @@ const analyticsService = {
         params: {
           start_date: filters.startDate,
           end_date: filters.endDate,
-          seller_id: filters.sellerId
+          seller_id: filters.sellerId,
+          industry: filters.industry
         }
       });
       return response.data;
@@ -33,7 +34,8 @@ const analyticsService = {
       const response = await axios.get(`${API_URL}analytics/users`, {
         headers: { Authorization: `Bearer ${token}` },
         params: {
-          period: filters.period || 'month'
+          period: filters.period || 'month',
+          industry: filters.industry
         }
       });
       return response.data;
@@ -53,7 +55,8 @@ const analyticsService = {
         params: {
           start_date: filters.startDate,
           end_date: filters.endDate,
-          seller_id: filters.sellerId
+          seller_id: filters.sellerId,
+          industry: filters.industry
         }
       });
       return response.data;
@@ -71,7 +74,8 @@ const analyticsService = {
       const response = await axios.get(`${API_URL}analytics/platform`, {
         headers: { Authorization: `Bearer ${token}` },
         params: {
-          period: filters.period || 'month'
+          period: filters.period || 'month',
+          industry: filters.industry
         }
       });
       return response.data;

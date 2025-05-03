@@ -13,9 +13,11 @@ import {
   CardContent,
   Divider,
   useTheme,
-  useMediaQuery
+  useMediaQuery,
+  Alert
 } from '@mui/material';
 import analyticsService from '../services/analyticsService';
+import { useAuth } from '../services/AuthContext';
 import {
   LineChart,
   Line,
@@ -54,6 +56,8 @@ const Analytics = () => {
   const [customerData, setCustomerData] = useState(null);
   const [platformData, setPlatformData] = useState(null);
   const [salesData, setSalesData] = useState([]);
+  const [error, setError] = useState(null);
+  const { user } = useAuth();
 
   const COLORS = [
     theme.palette.primary.main,
@@ -70,7 +74,16 @@ const Analytics = () => {
   const fetchAnalyticsData = async () => {
     try {
       setLoading(true);
-      const filters = { period: timeRange };
+      setError(null);
+      
+      // Add industry filter for sub-admin users
+      const filters = { 
+        period: timeRange,
+        // Add industry parameter if user is a sub-admin
+        industry: user?.role === 'sub-admin' ? user.industry : undefined
+      };
+      
+      console.log('Fetching analytics with filters:', filters);
 
       const [users, platform, sales] = await Promise.all([
         analyticsService.getUserAnalytics(filters),
@@ -91,6 +104,7 @@ const Analytics = () => {
       setSalesData(chartData);
     } catch (error) {
       console.error('Error fetching analytics:', error);
+      setError('Failed to load analytics data. Please try again later.');
     } finally {
       setLoading(false);
     }
@@ -133,6 +147,17 @@ const Analytics = () => {
 
   return (
     <Box sx={{ flexGrow: 1, p: isMobile ? 2 : 4, mt: 8 }}>
+      {error && (
+        <Alert severity="error" sx={{ mb: 3 }}>
+          {error}
+        </Alert>
+      )}
+      
+      {user?.role === 'sub-admin' && user?.industry && (
+        <Alert severity="info" sx={{ mb: 3 }}>
+          Showing analytics for {user.industry} industry
+        </Alert>
+      )}
       {/* Header Section */}
       <Box sx={{ 
         display: 'flex', 

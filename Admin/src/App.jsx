@@ -3,7 +3,7 @@ import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import { Box, Button, Typography, Paper } from '@mui/material';
 import { ArrowBack as ArrowBackIcon } from '@mui/icons-material';
-import { AuthProvider } from './services/AuthContext';
+import { AuthProvider, useAuth } from './services/AuthContext';
 
 // Auth components
 import Login from './components/Login';
@@ -23,6 +23,7 @@ import QAModeration from './pages/QAModeration';
 import ApprovedProducts from './pages/ApprovedProducts';
 import ProfilePage from './pages/Profile';
 import OrderManagement from './pages/OrderManagement';
+import ProductRequests from './pages/ProductRequests';
 
 const theme = createTheme({
   palette: {
@@ -246,6 +247,8 @@ const PublicRoute = ({ children }) => {
 };
 
 function App() {
+  // Remove this line that's causing the error
+  // const { user } = useAuth();
   const userRole = localStorage.getItem('userRole');
   const isAdminOrSubAdmin = userRole === 'admin' || userRole === 'sub-admin';
 
@@ -254,106 +257,126 @@ function App() {
       <CssBaseline />
       <Router>
         <AuthProvider>
-          <Box sx={{ display: 'flex' }}>
-            {isAdminOrSubAdmin && <Sidebar />}
-            <Box component="main" sx={{ flexGrow: 1 }}>
-              {isAdminOrSubAdmin && <Navbar />}
-              <Routes>
-                <Route
-                  path="/login"
-                  element={
-                    <PublicRoute>
-                      <Login />
-                    </PublicRoute>
-                  }
-                />
-                <Route
-                  path="/"
-                  element={
-                    <PrivateRoute>
-                      <Dashboard />
-                    </PrivateRoute>
-                  }
-                />
-                <Route
-                  path="/users"
-                  element={
-                    <PrivateRoute>
-                      <UserManagement />
-                    </PrivateRoute>
-                  }
-                />
-                <Route
-                  path="/approved-products"
-                  element={
-                    <PrivateRoute>
-                      <ApprovedProducts />
-                    </PrivateRoute>
-                  }
-                />
-                <Route
-                  path="/products"
-                  element={
-                    <PrivateRoute>
-                      <ProductModeration />
-                    </PrivateRoute>
-                  }
-                />
-                <Route
-                  path="/analytics"
-                  element={
-                    <PrivateRoute>
-                      <Analytics />
-                    </PrivateRoute>
-                  }
-                />
-                <Route
-                  path="/roles"
-                  element={
-                    <PrivateRoute>
-                      <RoleManagement />
-                    </PrivateRoute>
-                  }
-                />
-                <Route
-                  path="/questions/*"
-                  element={
-                    <PrivateRoute>
-                      <QASystem />
-                    </PrivateRoute>
-                  }
-                />
-                <Route
-                  path="/qa-moderation"
-                  element={
-                    <PrivateRoute>
-                      <QAModeration />
-                    </PrivateRoute>
-                  }
-                />
-                <Route
-                  path="/profile"
-                  element={
-                    <PrivateRoute>
-                      <ProfilePage />
-                    </PrivateRoute>
-                  }
-                />
-                <Route
-                  path="/orders"
-                  element={
-                    <PrivateRoute>
-                      <OrderManagement />
-                    </PrivateRoute>
-                  }
-                />
-              </Routes>
-            </Box>
-          </Box>
+          <AppContent isAdminOrSubAdmin={isAdminOrSubAdmin} />
         </AuthProvider>
       </Router>
     </ThemeProvider>
   );
 }
+
+// Create a new component that will be a child of AuthProvider
+const AppContent = ({ isAdminOrSubAdmin: propIsAdminOrSubAdmin }) => {
+  const { user } = useAuth(); // Now useAuth is used within AuthProvider
+  
+  // Use user state from AuthContext instead of just props
+  const isAdminOrSubAdmin = user?.role === 'admin' || user?.role === 'sub-admin' || propIsAdminOrSubAdmin;
+  
+  return (
+    <Box sx={{ display: 'flex' }}>
+      {isAdminOrSubAdmin && <Sidebar />}
+      <Box component="main" sx={{ flexGrow: 1 }}>
+        {isAdminOrSubAdmin && <Navbar />}
+        <Routes>
+          <Route
+            path="/login"
+            element={
+              <PublicRoute>
+                <Login />
+              </PublicRoute>
+            }
+          />
+          <Route
+            path="/"
+            element={
+              <PrivateRoute>
+                <Dashboard />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/users"
+            element={
+              <PrivateRoute>
+                <UserManagement />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/approved-products"
+            element={
+              <PrivateRoute>
+                <ApprovedProducts />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/products"
+            element={
+              <PrivateRoute>
+                <ProductModeration />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/analytics"
+            element={
+              <PrivateRoute>
+                <Analytics />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/roles"
+            element={
+              <PrivateRoute>
+                <RoleManagement />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/questions/*"
+            element={
+              <PrivateRoute>
+                <QASystem />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/qa-moderation"
+            element={
+              <PrivateRoute>
+                <QAModeration />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/profile"
+            element={
+              <PrivateRoute>
+                <ProfilePage />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/orders"
+            element={
+              <PrivateRoute>
+                <OrderManagement />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/product-requests"
+            element={
+              <PrivateRoute>
+                <ProductRequests />
+              </PrivateRoute>
+            }
+          />
+        </Routes>
+      </Box>
+    </Box>
+  );
+};
 
 export default App;

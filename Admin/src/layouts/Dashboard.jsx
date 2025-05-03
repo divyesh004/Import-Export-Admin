@@ -124,7 +124,7 @@ const Dashboard = () => {
         
         // console.log('Using token:', token);
         
-        // Fetch dashboard stats
+        // Fetch dashboard stats - industry is automatically filtered on server side based on user role
         const dashboardResponse = await fetch(`${import.meta.env.VITE_API_BASE_URL}analytics/dashboard`, {
           method: 'GET',
           headers: headers
@@ -132,13 +132,18 @@ const Dashboard = () => {
         
         if (!dashboardResponse.ok) {
           const errorData = await dashboardResponse.json().catch(() => ({}));
-          console.error('Dashboard response error:', dashboardResponse.status, errorData);
+          if (process.env.NODE_ENV !== 'production') {
+            console.error('Dashboard response error:', dashboardResponse.status, errorData);
+          }
           throw new Error(`Failed to fetch dashboard data: ${errorData.error || dashboardResponse.statusText}`);
         }
         
         const dashboardStats = await dashboardResponse.json();
+        if (process.env.NODE_ENV !== 'production') {
+          console.log('Dashboard stats received:', dashboardStats);
+        }
         
-        // Fetch recent activities
+        // Fetch recent activities - industry is automatically filtered on server side based on user role
         const activitiesResponse = await fetch(`${import.meta.env.VITE_API_BASE_URL}analytics/activities`, {
           method: 'GET',
           headers: headers
@@ -146,13 +151,19 @@ const Dashboard = () => {
         
         if (!activitiesResponse.ok) {
           const errorData = await activitiesResponse.json().catch(() => ({}));
-          console.error('Activities response error:', activitiesResponse.status, errorData);
+          if (process.env.NODE_ENV !== 'production') {
+            console.error('Activities response error:', activitiesResponse.status, errorData);
+          }
           throw new Error(`Failed to fetch activities: ${errorData.error || activitiesResponse.statusText}`);
         }
         
         const activitiesData = await activitiesResponse.json();
+        if (process.env.NODE_ENV !== 'production') {
+          console.log('Activities data received:', activitiesData);
+        }
         
         // Map backend data to frontend structure
+        // For sub-admin, data is already filtered by industry on the server side
         setDashboardData({
           totalUsers: dashboardStats.totalCustomers + dashboardStats.totalSellers,
           pendingProducts: dashboardStats.pendingProducts || 0,
@@ -165,8 +176,17 @@ const Dashboard = () => {
             api: 'Running'
           }
         });
+        
+        // Log user role and industry for debugging
+        if (user?.role === 'sub-admin') {
+          if (process.env.NODE_ENV !== 'production') {
+            console.log(`Sub-admin dashboard loaded for industry: ${user.industry}`);
+          }
+        }
       } catch (err) {
-        console.error('Error fetching dashboard data:', err);
+        if (process.env.NODE_ENV !== 'production') {
+          console.error('Error fetching dashboard data:', err);
+        }
         setError(err.message || 'Failed to load dashboard data');
       } finally {
         setLoading(false);
@@ -297,6 +317,19 @@ const Dashboard = () => {
               'Admin Dashboard'}
           </Typography>
         </Box>
+        
+        {user?.role === 'sub-admin' && user?.industry && (
+          <Alert 
+            severity="info" 
+            sx={{ 
+              mb: 3, 
+              borderRadius: 2,
+              boxShadow: '0 4px 12px rgba(33, 150, 243, 0.1)' 
+            }}
+          >
+            Showing data filtered for <strong>{user.industry}</strong> industry only
+          </Alert>
+        )}
 
         <Grid container spacing={3}>
   {stats.map((stat, index) => (
@@ -320,6 +353,13 @@ const Dashboard = () => {
       >
         <Typography variant="h6" sx={{ color: stat.textColor, fontWeight: 600 }}>
           {stat.title}
+          {user?.role === 'sub-admin' && user?.industry && (
+            <Chip 
+              size="small" 
+              label={user.industry} 
+              sx={{ ml: 1, fontSize: '0.7rem', bgcolor: 'rgba(0,0,0,0.05)' }} 
+            />
+          )}
         </Typography>
         <Typography variant="h4" sx={{ color: stat.valueColor, fontWeight: 'bold' }}>
           {stat.value}
@@ -328,7 +368,7 @@ const Dashboard = () => {
       </Box>
     </Grid>
   ))}
-</Grid>;
+</Grid>
 
       <Grid container spacing={3} sx={{ mt: 3 }}>
         {/* Recent Activities */}

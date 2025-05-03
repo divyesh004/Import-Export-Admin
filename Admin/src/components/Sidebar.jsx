@@ -33,6 +33,9 @@ import {
   Person as PersonIcon,
   Close as CloseIcon,
   Receipt as ReceiptIcon,
+  ShoppingCart as ShoppingCartIcon,
+  CheckCircle as CheckCircleIcon,
+  RequestQuote as RequestQuoteIcon,
 } from '@mui/icons-material';
 import { motion, AnimatePresence } from 'framer-motion';
 import { styled } from '@mui/material/styles';
@@ -209,10 +212,12 @@ const UserProfile = memo(({ user, onClick }) => {
 });
 
 const menuItems = [
+  { text: 'Dashboard', icon: <DashboardIcon />, path: '/', roles: ['admin', 'sub-admin'] },
   { text: 'User Management', icon: <PeopleIcon />, path: '/users', roles: ['admin'] },
   { text: 'Product Moderation', icon: <InventoryIcon />, path: '/products', roles: ['admin', 'sub-admin'] },
-  { text: 'Approved Products', icon: <InventoryIcon />, path: '/approved-products', roles: ['admin', 'sub-admin'] },
-  { text: 'Order Management', icon: <ReceiptIcon />, path: '/orders', roles: ['admin', 'sub-admin'] },
+  { text: 'Approved Products', icon: <CheckCircleIcon />, path: '/approved-products', roles: ['admin', 'sub-admin'] },
+  { text: 'Buyer Requests', icon: <RequestQuoteIcon />, path: '/product-requests', roles: ['admin', 'sub-admin'] },
+  { text: 'Order Management', icon: <ShoppingCartIcon />, path: '/orders', roles: ['admin', 'sub-admin'] },
   { text: 'Analytics', icon: <BarChartIcon />, path: '/analytics', roles: ['admin', 'sub-admin'] },
   { text: 'Role Management', icon: <AdminPanelSettingsIcon />, path: '/roles', roles: ['admin', 'sub-admin'] },
   { text: 'Q&A Management', icon: <QuestionAnswerIcon />, path: '/questions/all', roles: ['admin', 'sub-admin'] },
@@ -378,6 +383,19 @@ const Sidebar = () => {
                   Logout
                 </Button>
               </motion.div>
+              
+              <Typography 
+                variant="caption" 
+                sx={{ 
+                  display: 'block', 
+                  textAlign: 'center', 
+                  mt: 2, 
+                  color: 'text.secondary',
+                  fontSize: '0.7rem'
+                }}
+              >
+                @2025 Indibridge Admin Side
+              </Typography>
             </Box>
           )}
         </Box>
@@ -420,6 +438,11 @@ const Sidebar = () => {
             boxSizing: 'border-box',
             width: drawerWidth,
             boxShadow: '0 8px 24px rgba(0, 0, 0, 0.1)',
+            '&::-webkit-scrollbar': {
+              display: 'none',
+            },
+            scrollbarWidth: 'none',
+            msOverflowStyle: 'none',
           },
         }}
       >
@@ -435,6 +458,11 @@ const Sidebar = () => {
             width: drawerWidth,
             boxShadow: '0 8px 24px rgba(0, 0, 0, 0.1)',
             border: 'none',
+            '&::-webkit-scrollbar': {
+              display: 'none',
+            },
+            scrollbarWidth: 'none',
+            msOverflowStyle: 'none',
           },
         }}
         open

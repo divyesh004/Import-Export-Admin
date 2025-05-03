@@ -27,7 +27,9 @@ const qaService = {
         total: response.data.length
       };
     } catch (error) {
-      console.error('Error fetching questions:', error);
+      if (process.env.NODE_ENV !== 'production') {
+        console.error('Error fetching questions:', error);
+      }
       throw error.response?.data || error.message;
     }
   },
@@ -38,13 +40,36 @@ const qaService = {
       const token = localStorage.getItem('token');
       if (!token) throw new Error('Please login first');
 
-      const response = await axios.get(`${API_BASE_URL}qa/questions/pending`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      // Get user role and industry directly from localStorage
+      const userRole = localStorage.getItem('userRole');
+      const userIndustry = localStorage.getItem('userIndustry');
       
+      // For debugging
+      if (process.env.NODE_ENV !== 'production') {
+        console.log('User role from localStorage:', userRole, 'User industry from localStorage:', userIndustry);
+      }
+
+      // Store user info in request headers for backend filtering
+      const headers = { 
+        Authorization: `Bearer ${token}`,
+        'X-User-Role': userRole || '',
+        'X-User-Industry': userIndustry || ''
+      };
+      
+      if (process.env.NODE_ENV !== 'production') {
+        console.log('Sending headers to backend:', headers);
+      }
+
+      const response = await axios.get(`${API_BASE_URL}qa/questions/pending`, { headers });
+      
+      if (process.env.NODE_ENV !== 'production') {
+        console.log('Pending questions response:', response.data);
+      }
       return response.data;
     } catch (error) {
-      console.error('Error fetching pending questions:', error);
+      if (process.env.NODE_ENV !== 'production') {
+        console.error('Error fetching pending questions:', error);
+      }
       throw error.response?.data || error.message;
     }
   },
@@ -54,14 +79,37 @@ const qaService = {
     try {
       const token = localStorage.getItem('token');
       if (!token) throw new Error('Please login first');
-
-      const response = await axios.get(`${API_BASE_URL}qa/answers/pending`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
       
+      // Get user role and industry directly from localStorage
+      const userRole = localStorage.getItem('userRole');
+      const userIndustry = localStorage.getItem('userIndustry');
+      
+      // For debugging
+      if (process.env.NODE_ENV !== 'production') {
+        console.log('User role for answers from localStorage:', userRole, 'User industry from localStorage:', userIndustry);
+      }
+
+      // Store user info in request headers for backend filtering
+      const headers = { 
+        Authorization: `Bearer ${token}`,
+        'X-User-Role': userRole || '',
+        'X-User-Industry': userIndustry || ''
+      };
+      
+      if (process.env.NODE_ENV !== 'production') {
+        console.log('Sending headers to backend for answers:', headers);
+      }
+
+      const response = await axios.get(`${API_BASE_URL}qa/answers/pending`, { headers });
+      
+      if (process.env.NODE_ENV !== 'production') {
+        console.log('Pending answers response:', response.data);
+      }
       return response.data;
     } catch (error) {
-      console.error('Error fetching pending answers:', error);
+      if (process.env.NODE_ENV !== 'production') {
+        console.error('Error fetching pending answers:', error);
+      }
       throw error.response?.data || error.message;
     }
   },
@@ -78,7 +126,9 @@ const qaService = {
       
       return response.data;
     } catch (error) {
-      console.error(`Error fetching answers for question ${questionId}:`, error);
+      if (process.env.NODE_ENV !== 'production') {
+        console.error(`Error fetching answers for question ${questionId}:`, error);
+      }
       throw error.response?.data || error.message;
     }
   },
@@ -95,7 +145,9 @@ const qaService = {
       
       return response.data;
     } catch (error) {
-      console.error('Error creating question:', error);
+      if (process.env.NODE_ENV !== 'production') {
+        console.error('Error creating question:', error);
+      }
       throw error.response?.data || error.message;
     }
   },
@@ -112,7 +164,9 @@ const qaService = {
       
       return response.data;
     } catch (error) {
-      console.error('Error creating answer:', error);
+      if (process.env.NODE_ENV !== 'production') {
+        console.error('Error creating answer:', error);
+      }
       throw error.response?.data || error.message;
     }
   },
@@ -129,7 +183,9 @@ const qaService = {
       
       return response.data;
     } catch (error) {
-      console.error(`Error updating question ${questionId} status:`, error);
+      if (process.env.NODE_ENV !== 'production') {
+        console.error(`Error updating question ${questionId} status:`, error);
+      }
       throw error.response?.data || error.message;
     }
   },
@@ -146,7 +202,9 @@ const qaService = {
       
       return response.data;
     } catch (error) {
-      console.error(`Error updating answer ${answerId} status:`, error);
+      if (process.env.NODE_ENV !== 'production') {
+        console.error(`Error updating answer ${answerId} status:`, error);
+      }
       throw error.response?.data || error.message;
     }
   },
@@ -163,7 +221,9 @@ const qaService = {
       
       return response.data;
     } catch (error) {
-      console.error(`Error deleting question ${questionId}:`, error);
+      if (process.env.NODE_ENV !== 'production') {
+        console.error(`Error deleting question ${questionId}:`, error);
+      }
       throw error.response?.data || error.message;
     }
   },
@@ -180,7 +240,9 @@ const qaService = {
       
       return response.data;
     } catch (error) {
-      console.error(`Error deleting answer ${answerId}:`, error);
+      if (process.env.NODE_ENV !== 'production') {
+        console.error(`Error deleting answer ${answerId}:`, error);
+      }
       throw error.response?.data || error.message;
     }
   }

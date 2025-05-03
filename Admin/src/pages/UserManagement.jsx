@@ -68,7 +68,7 @@ const UserManagement = () => {
         setUsers(bannedUsers);
         setError(null);
       } else {
-        const roles = ['customer', 'seller', 'admin'];
+        const roles = ['customer', 'seller', 'admin', 'sub-admin'];
         const responses = await Promise.all(
           roles.map(role =>
             fetch(`${API_BASE_URL}auth/role/${role}`, {
@@ -167,6 +167,7 @@ const UserManagement = () => {
   const getRoleIcon = (role) => {
     switch (role) {
       case 'admin': return <AdminIcon fontSize="small" />;
+      case 'sub-admin': return <AdminIcon fontSize="small" />;
       case 'seller': return <StoreIcon fontSize="small" />;
       default: return <PersonIcon fontSize="small" />;
     }
@@ -175,6 +176,7 @@ const UserManagement = () => {
   const getRoleColor = (role) => {
     switch (role) {
       case 'admin': return 'error';
+      case 'sub-admin': return 'warning';
       case 'seller': return 'primary';
       default: return 'default';
     }
@@ -224,6 +226,7 @@ const UserManagement = () => {
         >
           <MenuItem value="all">All Roles</MenuItem>
           <MenuItem value="admin">Admin</MenuItem>
+          <MenuItem value="sub-admin">Sub Admin</MenuItem>
           <MenuItem value="seller">Seller</MenuItem>
           <MenuItem value="customer">Customer</MenuItem>
         </TextField>

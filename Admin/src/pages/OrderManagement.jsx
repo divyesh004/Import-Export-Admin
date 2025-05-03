@@ -203,11 +203,14 @@ const OrderManagement = () => {
       result = result.filter(order => order.status.toLowerCase() === 'pending_approval');
     } else if (tabValue === 2) {
       result = result.filter(order => order.status.toLowerCase() === 'approved');
-    } else if (tabValue === 3) {
-      result = result.filter(order => order.status.toLowerCase() === 'confirmed');
+    } 
+    else if (tabValue === 3) {
+      result = result.filter(order => order.status.toLowerCase() === 'in_progress');
     } else if (tabValue === 4) {
-      result = result.filter(order => order.status.toLowerCase() === 'delivered');
+      result = result.filter(order => order.status.toLowerCase() === 'confirmed');
     } else if (tabValue === 5) {
+      result = result.filter(order => order.status.toLowerCase() === 'delivered');
+    } else if (tabValue === 6) {
       result = result.filter(order => order.status.toLowerCase() === 'rejected');
     }
 
@@ -322,9 +325,11 @@ const OrderManagement = () => {
     'all',
     'pending approval',
     'approved',
+    'in_progress',
     'confirmed',
     'delivered',
-    'rejected'
+    'rejected',
+    'cancelled'
   ];
 
   // Get status color
@@ -335,12 +340,16 @@ const OrderManagement = () => {
         return theme.palette.warning.main;
       case 'approved':
         return theme.palette.info.main;
+      case 'in_progress':
+        return theme.palette.info.dark;
       case 'confirmed':
         return theme.palette.success.main;
       case 'delivered':
         return theme.palette.success.dark;
       case 'rejected':
         return theme.palette.error.main;
+      case 'cancelled':
+        return theme.palette.error.dark;
       default:
         return theme.palette.grey[500];
     }

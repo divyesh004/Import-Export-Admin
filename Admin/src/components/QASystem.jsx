@@ -218,10 +218,6 @@ const QASystem = () => {
       <Grid container spacing={3}>
         <Grid item xs={12}>
           <Box display="flex" justifyContent="space-between" alignItems="center" mb={2} mt={2}>
-            <Typography variant="h4" component="h1" fontWeight="bold">
-               {isSubAdmin && user?.industry ? `- ${user.industry} Industry` : ''}
-            </Typography>
-
           </Box>
           
           {error && (

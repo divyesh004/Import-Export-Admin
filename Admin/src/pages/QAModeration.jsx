@@ -66,11 +66,21 @@ const QAModeration = () => {
       setLoading(true);
       setError('');
 
-      const questions = await qaService.getPendingQuestions();
-      setPendingQuestions(questions);
+      console.log('Fetching pending items for user:', user?.role, 'Industry:', user?.industry);
 
+      // Get pending questions - will be filtered by industry for sub-admin in qaService
+      const questions = await qaService.getPendingQuestions();
+      console.log('Received pending questions:', questions);
+      setPendingQuestions(questions || []);
+
+      // Get pending answers - will be filtered by industry for sub-admin in qaService
       const answers = await qaService.getPendingAnswers();
-      setPendingAnswers(answers);
+      console.log('Received pending answers:', answers);
+      setPendingAnswers(answers || []);
+
+      if ((questions && questions.length === 0) && (answers && answers.length === 0) && user?.role === 'sub-admin') {
+        console.log('No pending items found for sub-admin with industry:', user?.industry);
+      }
     } catch (err) {
       setError('Failed to load pending items. Please try again.');
       console.error('Error fetching pending items:', err);
