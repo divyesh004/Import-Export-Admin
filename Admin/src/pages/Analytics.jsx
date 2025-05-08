@@ -56,6 +56,7 @@ const Analytics = () => {
   const [customerData, setCustomerData] = useState(null);
   const [platformData, setPlatformData] = useState(null);
   const [salesData, setSalesData] = useState([]);
+  const [industryBreakdownData, setIndustryBreakdownData] = useState([]);
   const [error, setError] = useState(null);
   const { user } = useAuth();
 
@@ -85,10 +86,11 @@ const Analytics = () => {
       
       console.log('Fetching analytics with filters:', filters);
 
-      const [users, platform, sales] = await Promise.all([
+      const [users, platform, sales, industryBreakdown] = await Promise.all([
         analyticsService.getUserAnalytics(filters),
         analyticsService.getPlatformAnalytics(filters),
-        analyticsService.getSalesAnalytics(filters)
+        analyticsService.getSalesAnalytics(filters),
+        analyticsService.getIndustryBreakdown(filters)
       ]);
 
       setCustomerData(users.data || users || null);
@@ -102,6 +104,22 @@ const Analytics = () => {
         }));
       
       setSalesData(chartData);
+      
+      // Process industry breakdown data
+      const industryData = industryBreakdown.data || industryBreakdown || {};
+      const formattedIndustryData = Array.isArray(industryData) ? industryData :
+        Object.entries(industryData).map(([key, value]) => ({
+          name: key,
+          value: typeof value === 'number' ? value : parseInt(value, 10) || 0
+        }));
+      
+      // Sort by value
+      const sortedIndustryData = formattedIndustryData
+        .sort((a, b) => b.value - a.value);
+        
+      setIndustryBreakdownData(sortedIndustryData.length > 0 ? sortedIndustryData : [
+        { name: 'No Data', value: 100 }
+      ]);
     } catch (error) {
       console.error('Error fetching analytics:', error);
       setError('Failed to load analytics data. Please try again later.');
@@ -394,7 +412,7 @@ const Analytics = () => {
             </Card>
           </Grid>
 
-          {/* Revenue Breakdown */}
+          {/* Industry Breakdown */}
           <Grid item xs={12} lg={4}>
             <Card sx={{ 
               p: 2, 
@@ -403,17 +421,17 @@ const Analytics = () => {
               boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)'
             }}>
               <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
-                Revenue Breakdown
+                Industry Breakdown
+                {user?.role === 'sub-admin' && user?.industry && (
+                  <Typography variant="caption" sx={{ display: 'block', mt: 0.5, color: 'text.secondary' }}>
+                    {user.industry} Industry
+                  </Typography>
+                )}
               </Typography>
               <ResponsiveContainer width="100%" height="90%">
                 <PieChart>
                   <Pie
-                    data={[
-                      { name: 'Product A', value: 400 },
-                      { name: 'Product B', value: 300 },
-                      { name: 'Product C', value: 200 },
-                      { name: 'Product D', value: 100 }
-                    ]}
+                    data={industryBreakdownData}
                     cx="50%"
                     cy="50%"
                     labelLine={false}
@@ -422,7 +440,7 @@ const Analytics = () => {
                     dataKey="value"
                     label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
                   >
-                    {[0, 1, 2, 3].map((entry, index) => (
+                    {industryBreakdownData.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                     ))}
                   </Pie>
@@ -431,6 +449,7 @@ const Analytics = () => {
                       borderRadius: 12,
                       boxShadow: theme.shadows[3]
                     }}
+                    formatter={(value) => [value.toLocaleString(), 'Products']}
                   />
                 </PieChart>
               </ResponsiveContainer>

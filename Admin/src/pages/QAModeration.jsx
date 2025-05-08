@@ -388,7 +388,7 @@ const QAModeration = () => {
                                 <TableCell>{formatDate(question.created_at || question.date)}</TableCell>
                                 <TableCell>
                                   <Chip
-                                    label={question.industry || 'General'}
+                                    label={question.products?.industry || 'No Industry'}
                                     size="small"
                                     color="info"
                                     variant="outlined"
@@ -529,7 +529,13 @@ const QAModeration = () => {
                                 </TableCell>
                                 <TableCell>
                                   <Typography fontWeight={500}>
-                                    {truncateText(answer.question?.question || 'Question not available', isMobile ? 30 : 50)}
+                                    {truncateText(
+                                      answer.question?.question || 
+                                      (typeof answer.question === 'string' ? answer.question : 
+                                      answer.ques?.question || 
+                                      (typeof answer.ques === 'string' ? answer.ques : 'Question not available')), 
+                                      isMobile ? 30 : 50
+                                    )}
                                   </Typography>
                                 </TableCell>
                                 <TableCell>
@@ -728,7 +734,10 @@ const QAModeration = () => {
                         Industry:
                       </Typography>
                       <Chip
-                        label={selectedItem.industry || 'General'}
+                        label={selectedItem.products?.industry || 
+                               selectedItem.question?.products?.industry || 
+                               selectedItem.ques?.products?.industry || 
+                               'General'}
                         size="small"
                         color="info"
                         variant="outlined"
@@ -769,8 +778,13 @@ const QAModeration = () => {
                       overflow: 'hidden'
                     }}
                   >
-                    <Typography variant="body1" fontWeight={500}>{selectedItem.question?.question || selectedItem.question || 'Question not available'}</Typography>
-                    {selectedItem.question?.users && (
+                    <Typography variant="body1" fontWeight={500}>
+                      {selectedItem.question?.question || 
+                       (typeof selectedItem.question === 'string' ? selectedItem.question : 
+                       selectedItem.ques?.question || 
+                       (typeof selectedItem.ques === 'string' ? selectedItem.ques : 'Question not available'))}
+                    </Typography>
+                    {(selectedItem.question?.users || selectedItem.ques?.users) && (
                       <Box display="flex" alignItems="center" gap={1} mt={2}>
                         <Avatar 
                           sx={{ 
@@ -780,10 +794,14 @@ const QAModeration = () => {
                             fontSize: '0.8rem'
                           }}
                         >
-                          {selectedItem.question.users?.name?.charAt(0) || <PersonIcon fontSize="small" />}
+                          {(selectedItem.question?.users?.name?.charAt(0) || selectedItem.ques?.users?.name?.charAt(0)) || <PersonIcon fontSize="small" />}
                         </Avatar>
                         <Typography variant="caption" color="textSecondary">
-                          {selectedItem.question.users?.name || 'Anonymous'} • {formatDate(selectedItem.question.created_at || selectedItem.question.date)}
+                          {(selectedItem.question?.users?.name || selectedItem.ques?.users?.name || 'Anonymous')} • {formatDate(
+                            selectedItem.question?.created_at || selectedItem.question?.date || 
+                            selectedItem.ques?.created_at || selectedItem.ques?.date || 
+                            selectedItem.created_at || selectedItem.date
+                          )}
                         </Typography>
                       </Box>
                     )}
