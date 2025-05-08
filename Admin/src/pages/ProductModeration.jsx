@@ -97,6 +97,15 @@ const ProductModeration = () => {
         imageUrl = product.image;
       }
       
+      // Get seller information from API response
+      // First check if seller property exists from API
+      // Then check if users object exists with name property
+      // Finally fallback to Unknown Seller
+      const sellerName = product.seller || 
+                         (product.users?.name) || 
+                         (product.user?.name) || 
+                         'Unknown Seller';
+      
       return {
         ...product,
         image: imageUrl || '/placeholder-product.png',
@@ -107,6 +116,7 @@ const ProductModeration = () => {
         createdAt: product.createdAt ? new Date(product.createdAt).toLocaleDateString() : 'N/A',
         rating: product.rating || Math.random() * 2 + 3, // Random rating between 3-5 if not provided
         reviewCount: product.reviewCount || Math.floor(Math.random() * 100), // Random review count if not provided
+        seller: sellerName // Ensure seller field is always populated with the best available data
       };
     });
   };
@@ -836,4 +846,4 @@ const ProductModeration = () => {
   );
 };
 
-export default ProductModeration; 
+export default ProductModeration;
