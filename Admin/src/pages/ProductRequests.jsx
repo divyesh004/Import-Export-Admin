@@ -263,18 +263,18 @@ const ProductRequests = () => {
   };
 
   return (
-    <Box sx={{ p: 3 }}>
-      <Typography variant="h4" component="h1" gutterBottom>
+    <Box sx={{ p: 3, bgcolor: '#ffffff' }}>
+      <Typography variant="h4" component="h1" gutterBottom sx={{ fontWeight: 400, color: '#000000' }}>
         Product Requests Management
       </Typography>
       
       {error && (
-        <Alert severity="error" sx={{ mb: 2 }}>
+        <Alert severity="error" sx={{ mb: 2, borderRadius: 1, border: '1px solid #f0f0f0' }}>
           {error}
         </Alert>
       )}
       
-      <Paper sx={{ mb: 3, p: 2 }}>
+      <Paper sx={{ mb: 3, p: 2, boxShadow: 'none', border: '1px solid #f0f0f0' }}>
         <Grid container spacing={2} alignItems="center">
           <Grid item xs={12} sm={6} md={4}>
             <TextField
@@ -284,9 +284,16 @@ const ProductRequests = () => {
               value={searchQuery}
               onChange={handleSearchChange}
               InputProps={{
-                startAdornment: <SearchIcon sx={{ mr: 1, color: 'text.secondary' }} />
+                startAdornment: <SearchIcon sx={{ mr: 1, color: '#000000' }} />
               }}
               placeholder="Search by name, email..."
+              sx={{ 
+                '& .MuiOutlinedInput-root': {
+                  '& fieldset': { borderColor: '#e0e0e0', borderRadius: 1 },
+                  '&:hover fieldset': { borderColor: '#000000' },
+                  '&.Mui-focused fieldset': { borderColor: '#000000' },
+                }
+              }}
             />
           </Grid>
           
@@ -297,7 +304,12 @@ const ProductRequests = () => {
                 value={statusFilter}
                 onChange={handleStatusFilterChange}
                 label="Status Filter"
-                startAdornment={<FilterListIcon sx={{ mr: 1, color: 'text.secondary' }} />}
+                startAdornment={<FilterListIcon sx={{ mr: 1, color: '#000000' }} />}
+                sx={{ 
+                  '& .MuiOutlinedInput-notchedOutline': { borderColor: '#e0e0e0', borderRadius: 1 },
+                  '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#000000' },
+                  '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#000000' },
+                }}
               >
                 <MenuItem value="all">All Statuses</MenuItem>
                 <MenuItem value="pending">Pending</MenuItem>
@@ -309,13 +321,18 @@ const ProductRequests = () => {
         </Grid>
       </Paper>
       
-      <Paper sx={{ mb: 3 }}>
+      <Paper sx={{ mb: 3, boxShadow: 'none', border: '1px solid #f0f0f0' }}>
         <Tabs
           value={tabValue}
           onChange={handleTabChange}
           indicatorColor="primary"
           textColor="primary"
           variant="fullWidth"
+          sx={{ 
+            '& .MuiTabs-indicator': { backgroundColor: '#000000' },
+            '& .MuiTab-root': { color: '#555555' },
+            '& .Mui-selected': { color: '#000000' }
+          }}
         >
           <Tab label="All Requests" />
           <Tab label="Pending" />

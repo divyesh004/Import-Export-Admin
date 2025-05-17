@@ -4,6 +4,10 @@ import CssBaseline from '@mui/material/CssBaseline';
 import { Box, Button, Typography, Paper } from '@mui/material';
 import { ArrowBack as ArrowBackIcon } from '@mui/icons-material';
 import { AuthProvider, useAuth } from './services/AuthContext';
+import '@fontsource/inter';
+import '@fontsource/inter/500.css';
+import '@fontsource/inter/600.css';
+import '@fontsource/inter/700.css';
 
 // Auth components
 import Login from './components/Login';
@@ -28,40 +32,39 @@ import ProductRequests from './pages/ProductRequests';
 const theme = createTheme({
   palette: {
     primary: {
-      light: '#4dabf5',
-      main: '#1976d2',
-      dark: '#1565c0',
+      light: '#60A5FA', // Soft Sky Blue as light primary
+      main: '#1E3A8A', // Navy Blue as main primary
+      dark: '#1E3A8A', // Darker shade of Navy Blue
       contrastText: '#fff',
     },
     secondary: {
-      light: '#ff4081',
-      main: '#f50057',
-      dark: '#c51162',
+      light: '#9CA3AF',
+      main: '#6B7280', // Cool Gray as secondary
+      dark: '#4B5563',
       contrastText: '#fff',
     },
     background: {
-      default: '#f8f9fa',
-      paper: '#ffffff',
+      default: '#F9FAFB', // Light Gray background
     },
     text: {
-      primary: '#2c3e50',
-      secondary: '#546e7a',
+      primary: '#111827', // Dark Slate for text
+      secondary: '#6B7280', // Cool Gray for secondary text
     },
     success: {
-      main: '#4caf50',
+      main: '#10B981', // Emerald Green for success/CTA
     },
     error: {
-      main: '#f44336',
+      main: '#EF4444', // Soft Red for alerts/errors
     },
     warning: {
-      main: '#ff9800',
+      main: '#F59E0B', // Amber for warnings
     },
     info: {
-      main: '#03a9f4',
+      main: '#60A5FA', // Soft Sky Blue for info
     },
   },
   typography: {
-    fontFamily: '"Poppins", "Roboto", "Helvetica", "Arial", sans-serif',
+    fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
     h1: {
       fontWeight: 700,
     },
@@ -111,10 +114,13 @@ const theme = createTheme({
         },
         contained: {
           '&.MuiButton-containedPrimary': {
-            background: 'linear-gradient(45deg, #1976d2 30%, #2196f3 90%)',
+            background: 'linear-gradient(45deg, #1E3A8A 30%, #60A5FA 90%)',
           },
           '&.MuiButton-containedSecondary': {
-            background: 'linear-gradient(45deg, #f50057 30%, #ff4081 90%)',
+            background: 'linear-gradient(45deg, #6B7280 30%, #9CA3AF 90%)',
+          },
+          '&.MuiButton-containedSuccess': {
+            background: 'linear-gradient(45deg, #10B981 30%, #34D399 90%)',
           },
         },
       },
@@ -181,7 +187,6 @@ const PrivateRoute = ({ children }) => {
             maxWidth: 500, 
             mx: 'auto',
             borderRadius: 4,
-            background: 'linear-gradient(135deg, #fff 0%, #f8f9fa 100%)',
             border: '1px solid rgba(0,0,0,0.05)',
             position: 'relative',
             overflow: 'hidden',
@@ -192,7 +197,7 @@ const PrivateRoute = ({ children }) => {
               left: 0,
               width: '100%',
               height: '8px',
-              background: 'linear-gradient(90deg, #f44336 0%, #ff9800 100%)',
+              background: 'linear-gradient(90deg, #EF4444 0%, #F59E0B 100%)',
             }
           }}
         >
@@ -201,7 +206,7 @@ const PrivateRoute = ({ children }) => {
             sx={{ 
               fontWeight: 'bold', 
               mb: 2,
-              color: '#f44336',
+              color: '#EF4444',
               textShadow: '0px 1px 2px rgba(0,0,0,0.05)'
             }}
           >

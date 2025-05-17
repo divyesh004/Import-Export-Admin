@@ -48,6 +48,7 @@ import {
 } from '@mui/icons-material';
 import productService from '../services/productService';
 import { motion } from 'framer-motion';
+import ProductCard from '../components/ProductCard';
 
 const ProductModeration = () => {
   const theme = useTheme();
@@ -150,197 +151,26 @@ const ProductModeration = () => {
 
   const renderProductCard = (product) => (
     <Grid item xs={12} sm={6} md={4} lg={3} key={product.id}>
-      <Card 
-        component={motion.div}
-        whileHover={{ y: -5, boxShadow: theme.shadows[6] }}
-        sx={{ 
-          height: '100%',
-          display: 'flex',
-          flexDirection: 'column',
-          borderRadius: '12px',
-          overflow: 'hidden',
-          transition: 'all 0.3s ease',
-          border: '1px solid',
-          borderColor: theme.palette.divider,
-          '&:hover': {
-            borderColor: theme.palette.primary.main,
-          },
-        }}
-      >
-        {/* Product Image with Status Badge */}
-        <Box sx={{ position: 'relative', pt: '75%', overflow: 'hidden' }}>
-          <CardMedia
-            component="img"
-            image={product.image}
-            alt={product.name}
-            sx={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              width: '100%',
-              height: '100%',
-              objectFit: 'cover',
-              transition: 'transform 0.5s ease',
-              '&:hover': {
-                transform: 'scale(1.05)',
-              },
-            }}
-          />
-          <Chip
-            label={product.status}
-            size="small"
-            sx={{
-              position: 'absolute',
-              top: 12,
-              right: 12,
-              borderRadius: 1,
-              fontWeight: 600,
-              backgroundColor: 
-                product.status === 'Approved' ? theme.palette.success.main : 
-                product.status === 'Rejected' ? theme.palette.error.main : 
-                theme.palette.warning.main,
-              color: theme.palette.common.white,
-              boxShadow: theme.shadows[2],
-            }}
-          />
-        </Box>
-        
-        {/* Product Content */}
-        <CardContent sx={{ flexGrow: 1, p: 2 }}>
-          <Typography 
-            variant="subtitle1" 
-            fontWeight={600} 
-            noWrap
-            sx={{ mb: 1 }}
-          >
-            {product.name}
-          </Typography>
-          
-          {/* Rating */}
-          <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-            <Rating
-              value={product.rating}
-              precision={0.5}
-              readOnly
-              size="small"
-              emptyIcon={<StarIcon fontSize="inherit" />}
-            />
-            <Typography variant="caption" color="text.secondary" sx={{ ml: 0.5 }}>
-              ({product.reviewCount})
-            </Typography>
-          </Box>
-          
-          {/* Price */}
-          <Typography 
-            variant="h6" 
-            color="primary" 
-            fontWeight={700}
-            sx={{ mb: 1.5 }}
-          >
-            {product.formattedPrice}
-          </Typography>
-          
-          {/* Category and Seller */}
-          <Stack direction="row" spacing={1} sx={{ mb: 1 }}>
-            <Chip 
-              icon={<CategoryIcon sx={{ fontSize: '16px !important' }} />}
-              label={product.category || 'Uncategorized'}
-              size="small"
-              variant="outlined"
-              sx={{ borderRadius: 1 }}
-            />
-            <Chip 
-              icon={<PersonIcon sx={{ fontSize: '16px !important' }} />}
-              label={product.seller || 'Unknown'}
-              size="small"
-              variant="outlined"
-              sx={{ borderRadius: 1 }}
-            />
-          </Stack>
-          
-          {/* Date Added */}
-          <Box sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
-            <CalendarIcon color="action" sx={{ fontSize: 16, mr: 0.5 }} />
-            <Typography variant="caption" color="text.secondary">
-              Added: {product.createdAt}
-            </Typography>
-          </Box>
-        </CardContent>
-        
-        {/* Actions */}
-        <CardActions sx={{ 
-          p: 1, 
-          borderTop: `1px solid ${theme.palette.divider}`,
-          justifyContent: 'space-between' 
-        }}>
-          <Tooltip title="View details">
-            <IconButton
-              onClick={() => handleViewDetails(product)}
-              size="small"
-              color="primary"
-              sx={{ 
-                borderRadius: 1,
-                '&:hover': { 
-                  backgroundColor: theme.palette.primary.light,
-                  color: theme.palette.primary.contrastText 
-                }
-              }}
-            >
-              <VisibilityIcon fontSize="small" />
-            </IconButton>
-          </Tooltip>
-          
-          {product.status !== 'Rejected' && (
-            <Stack direction="row" spacing={0.5}>
-              <Tooltip title="Approve">
-                <IconButton
-                  onClick={() => handleAction(product, 'approve')}
-                  size="small"
-                  color="success"
-                  sx={{ 
-                    borderRadius: 1,
-                    '&:hover': { 
-                      backgroundColor: theme.palette.success.light,
-                      color: theme.palette.success.contrastText 
-                    }
-                  }}
-                >
-                  <CheckCircleIcon fontSize="small" />
-                </IconButton>
-              </Tooltip>
-              
-              <Tooltip title="Reject">
-                <IconButton
-                  onClick={() => handleAction(product, 'reject')}
-                  size="small"
-                  color="error"
-                  sx={{ 
-                    borderRadius: 1,
-                    '&:hover': { 
-                      backgroundColor: theme.palette.error.light,
-                      color: theme.palette.error.contrastText 
-                    }
-                  }}
-                >
-                  <CancelIcon fontSize="small" />
-                </IconButton>
-              </Tooltip>
-            </Stack>
-          )}
-        </CardActions>
-      </Card>
+      <ProductCard
+        product={product}
+        onView={handleViewDetails}
+        onApprove={(product) => handleAction(product, 'approve')}
+        onReject={(product) => handleAction(product, 'reject')}
+        showActions={true}
+        actionButtons={{ view: true, approve: true, reject: true }}
+      />
     </Grid>
   );
 
   return (
-    <Box sx={{ flexGrow: 1, p: { xs: 2, md: 3 }, mt: 8 }}>
+    <Box sx={{ flexGrow: 1, p: { xs: 1.5, md: 2 }, mt: 8 }}>
     
 
       {/* Error Alert */}
       {error && (
         <Alert 
           severity="error" 
-          sx={{ mb: 3 }}
+          sx={{ mb: 2 }}
           onClose={() => setError(null)}
         >
           {error}
@@ -348,11 +178,11 @@ const ProductModeration = () => {
       )}
 
       {/* Tabs */}
-      <Paper 
+      <Box 
         sx={{ 
-          mb: 3, 
-          borderRadius: 2,
-          boxShadow: theme.shadows[1],
+          mb: 2, 
+          borderBottom: 1,
+          borderColor: 'divider',
           overflow: 'hidden'
         }}
       >
@@ -364,8 +194,8 @@ const ProductModeration = () => {
           textColor="primary"
           sx={{
             '& .MuiTab-root': {
-              minHeight: 60,
-              py: 1.5,
+              minHeight: 48,
+              py: 1,
             }
           }}
         >
@@ -376,9 +206,9 @@ const ProductModeration = () => {
                 color="primary"
                 sx={{ mr: 1 }}
               >
-                <Stack direction="row" alignItems="center" spacing={1.5}>
-                  <ShoppingBagIcon fontSize="medium" />
-                  <Typography variant="body1" fontWeight={500}>Pending Review</Typography>
+                <Stack direction="row" alignItems="center" spacing={1}>
+                  <ShoppingBagIcon fontSize="small" />
+                  <Typography variant="body2">Pending Review</Typography>
                 </Stack>
               </Badge>
             } 
@@ -390,15 +220,15 @@ const ProductModeration = () => {
                 color="error"
                 sx={{ mr: 1 }}
               >
-                <Stack direction="row" alignItems="center" spacing={1.5}>
-                  <BlockIcon fontSize="medium" />
-                  <Typography variant="body1" fontWeight={500}>Rejected</Typography>
+                <Stack direction="row" alignItems="center" spacing={1}>
+                  <BlockIcon fontSize="small" />
+                  <Typography variant="body2">Rejected</Typography>
                 </Stack>
               </Badge>
             } 
           />
         </Tabs>
-      </Paper>
+      </Box>
 
       {/* Content */}
       {loading ? (
@@ -406,59 +236,60 @@ const ProductModeration = () => {
           display: 'flex', 
           justifyContent: 'center', 
           alignItems: 'center',
-          minHeight: '300px'
+          minHeight: '200px',
+          bgcolor: '#FFF'
         }}>
-          <CircularProgress size={60} thickness={4} />
+          <CircularProgress size={40} thickness={3} />
         </Box>
       ) : (
         <>
           {tabValue === 0 ? (
             pendingProducts.length > 0 ? (
-              <Grid container spacing={3}>
+              <Grid container spacing={2}>
                 {pendingProducts.map(renderProductCard)}
               </Grid>
             ) : (
-              <Paper 
+              <Box 
                 sx={{ 
-                  p: 4, 
+                  p: 3, 
                   textAlign: 'center', 
-                  borderRadius: 2,
-                  boxShadow: theme.shadows[1],
-                  bgcolor: theme.palette.background.paper
+                  border: '1px solid',
+                  borderColor: 'divider',
+                  bgcolor: '#FFF'
                 }}
               >
-                <InfoIcon color="primary" sx={{ fontSize: 60, mb: 2 }} />
-                <Typography variant="h5" gutterBottom fontWeight={600}>
+                <InfoIcon color="primary" sx={{ fontSize: 40, mb: 1.5 }} />
+                <Typography variant="h6" gutterBottom>
                   No Pending Products
                 </Typography>
-                <Typography variant="body1" color="text.secondary">
+                <Typography variant="body2" color="text.secondary">
                   All products have been moderated. Check back later for new submissions.
                 </Typography>
-              </Paper>
+              </Box>
             )
           ) : (
             rejectedProducts.length > 0 ? (
-              <Grid container spacing={3}>
+              <Grid container spacing={2}>
                 {rejectedProducts.map(renderProductCard)}
               </Grid>
             ) : (
-              <Paper 
+              <Box 
                 sx={{ 
-                  p: 4, 
+                  p: 3, 
                   textAlign: 'center', 
-                  borderRadius: 2,
-                  boxShadow: theme.shadows[1],
-                  bgcolor: theme.palette.background.paper
+                  border: '1px solid',
+                  borderColor: 'divider',
+                  bgcolor: '#FFF'
                 }}
               >
-                <InfoIcon color="primary" sx={{ fontSize: 60, mb: 2 }} />
-                <Typography variant="h5" gutterBottom fontWeight={600}>
+                <InfoIcon color="primary" sx={{ fontSize: 40, mb: 1.5 }} />
+                <Typography variant="h6" gutterBottom>
                   No Rejected Products
                 </Typography>
-                <Typography variant="body1" color="text.secondary">
+                <Typography variant="body2" color="text.secondary">
                   No products have been rejected yet.
                 </Typography>
-              </Paper>
+              </Box>
             )
           )}
         </>
@@ -472,48 +303,47 @@ const ProductModeration = () => {
         fullWidth
         PaperProps={{
           sx: {
-            borderRadius: 3,
+            borderRadius: 0,
             overflow: 'hidden'
           }
         }}
       >
         <DialogTitle sx={{ 
-          bgcolor: action === 'approve' ? 'success.main' : 'error.main',
-          color: 'white',
-          py: 2,
+          borderBottom: '1px solid',
+          borderColor: 'divider',
+          py: 1.5,
           display: 'flex',
           alignItems: 'center',
-          gap: 1.5
+          gap: 1
         }}>
           {action === 'approve' ? (
-            <CheckCircleIcon fontSize="large" />
+            <CheckCircleIcon color="success" fontSize="small" />
           ) : (
-            <CancelIcon fontSize="large" />
+            <CancelIcon color="error" fontSize="small" />
           )}
-          <Typography variant="h6" fontWeight={600}>
+          <Typography variant="subtitle1">
             Confirm {action === 'approve' ? 'Approval' : 'Rejection'}
           </Typography>
         </DialogTitle>
         
-        <DialogContent sx={{ py: 3 }}>
-          <Typography variant="body1" sx={{ mb: 2 }}>
+        <DialogContent sx={{ py: 2 }}>
+          <Typography variant="body2" sx={{ mb: 1.5 }}>
             You are about to <strong>{action}</strong> this product:
           </Typography>
           
-          <Paper 
+          <Box 
             sx={{ 
-              p: 2, 
-              mb: 2, 
-              borderRadius: 1,
-              borderLeft: `4px solid ${action === 'approve' ? theme.palette.success.main : theme.palette.error.main}`,
-              bgcolor: theme.palette.background.default
+              p: 1.5, 
+              mb: 1.5, 
+              border: '1px solid',
+              borderColor: 'divider',
+              bgcolor: 'background.paper'
             }}
           >
-            <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+            <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'center' }}>
               <Box sx={{ 
-                width: 80, 
-                height: 80, 
-                borderRadius: 1,
+                width: 60, 
+                height: 60, 
                 overflow: 'hidden',
                 flexShrink: 0
               }}>
@@ -524,33 +354,32 @@ const ProductModeration = () => {
                 />
               </Box>
               <Box>
-                <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 0.5 }}>
+                <Typography variant="body2" fontWeight={500} sx={{ mb: 0.5 }}>
                   {selectedProduct?.name}
                 </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  <strong>Seller:</strong> {selectedProduct?.seller || 'Unknown'}
+                <Typography variant="caption" color="text.secondary">
+                  Seller: {selectedProduct?.seller || 'Unknown'}
                 </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  <strong>Price:</strong> {selectedProduct?.formattedPrice}
+                <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+                  Price: {selectedProduct?.formattedPrice}
                 </Typography>
               </Box>
             </Box>
-          </Paper>
+          </Box>
           
-          <Typography variant="body2" color="text.secondary">
+          <Typography variant="caption" color="text.secondary">
             {action === 'approve' 
               ? 'This product will become visible to all customers and available for purchase.'
               : 'This product will be removed from public view and cannot be purchased.'}
           </Typography>
         </DialogContent>
         
-        <DialogActions sx={{ px: 3, pb: 3, gap: 1 }}>
+        <DialogActions sx={{ px: 2, pb: 2, pt: 0, gap: 1 }}>
           <Button 
             onClick={() => setOpenDialog(false)}
             variant="outlined"
+            size="small"
             sx={{ 
-              borderRadius: 2,
-              px: 3,
               textTransform: 'none'
             }}
           >
@@ -559,10 +388,9 @@ const ProductModeration = () => {
           <Button 
             onClick={handleConfirmAction} 
             variant="contained"
+            size="small"
             color={action === 'approve' ? 'success' : 'error'}
             sx={{ 
-              borderRadius: 2,
-              px: 3,
               textTransform: 'none',
               boxShadow: 'none',
               '&:hover': {
@@ -571,7 +399,7 @@ const ProductModeration = () => {
             }}
             startIcon={action === 'approve' ? <CheckCircleIcon /> : <CancelIcon />}
           >
-            Confirm {action === 'approve' ? 'Approval' : 'Rejection'}
+            Confirm
           </Button>
         </DialogActions>
       </Dialog>

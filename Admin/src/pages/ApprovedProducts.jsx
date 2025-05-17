@@ -34,6 +34,7 @@ import {
   Tabs,
   Tab
 } from '@mui/material';
+import ProductCard from '../components/ProductCard';
 import { 
   CheckCircle as CheckCircleIcon,
   Cancel as CancelIcon,
@@ -163,7 +164,7 @@ const ApprovedProducts = () => {
         justifyContent: 'center', 
         alignItems: 'center', 
         minHeight: '80vh',
-        background: 'linear-gradient(135deg, #f5f7fa 0%, #e4e8eb 100%)',
+        background: '##e5e7eb',
         borderRadius: 3
       }}>
         <CircularProgress size={60} thickness={4} />
@@ -184,12 +185,7 @@ const ApprovedProducts = () => {
   if (products.length === 0) {
     return (
       <Container maxWidth="xl" sx={{ p: { xs: 2, sm: 3 }, mt: { xs: 6, sm: 8 } }}>
-        <Paper elevation={0} sx={{ 
-          p: 4, 
-          borderRadius: 4,
-          background: 'linear-gradient(135deg, #f5f7fa 0%, #e4e8eb 100%)',
-          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.05)'
-        }}>
+        <Paper elevation={0} >
           <Box sx={{ textAlign: 'center', py: 5 }}>
             <InfoIcon sx={{ fontSize: 60, color: 'info.main', mb: 2 }} />
             <Typography variant="h5" gutterBottom>
@@ -208,12 +204,7 @@ const ApprovedProducts = () => {
 
   return (
     <Container maxWidth="xl" sx={{ p: { xs: 2, sm: 3 }, mt: { xs: 6, sm: 8 } }}>
-      <Paper elevation={0} sx={{ 
-        p: 4, 
-        borderRadius: 4,
-        background: 'linear-gradient(135deg, #f5f7fa 0%, #e4e8eb 100%)',
-        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.05)'
-      }}>
+      <Paper elevation={0}>
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
             <Badge
               overlap="circular"
@@ -264,12 +255,7 @@ const ApprovedProducts = () => {
         }} />
         
         {products.length === 0 ? (
-          <Paper sx={{ 
-            p: 4, 
-            textAlign: 'center', 
-            borderRadius: 3,
-            background: 'white'
-          }}>
+          <Paper>
             <Typography variant="h6" color="textSecondary">
               No approved products found
             </Typography>
@@ -281,150 +267,13 @@ const ApprovedProducts = () => {
           <Grid container spacing={3}>
             {products.map((product) => (
               <Grid item xs={12} sm={6} md={4} lg={3} key={product.id}>
-                <Card 
-                  sx={{ 
-                    height: '100%', 
-                    display: 'flex', 
-                    flexDirection: 'column',
-                    borderRadius: 3,
-                    overflow: 'hidden',
-                    transition: 'all 0.3s ease',
-                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)',
-                    '&:hover': {
-                      transform: 'translateY(-8px)',
-                      boxShadow: '0 12px 24px rgba(0, 0, 0, 0.1)'
-                    }
-                  }}
-                >
-                  <Box sx={{ position: 'relative' }}>
-                    <CardMedia
-                      component="img"
-                      height="200"
-                      image={product.image_url || 'https://via.placeholder.com/300x200?text=No+Image'}
-                      alt={product.name}
-                      sx={{
-                        objectFit: 'cover',
-                        transition: 'transform 0.5s ease',
-                        '&:hover': {
-                          transform: 'scale(1.05)'
-                        }
-                      }}
-                    />
-                    <Chip 
-                      label="Approved" 
-                      color="success" 
-                      size="small"
-                      icon={<CheckCircleIcon fontSize="small" />}
-                      sx={{ 
-                        position: 'absolute', 
-                        top: 12, 
-                        left: 12,
-                        fontWeight: 600,
-                        boxShadow: '0 2px 8px rgba(76, 175, 80, 0.3)'
-                      }}
-                    />
-                    {product.rating && (
-                      <Chip
-                        label={`${product.rating} ★`}
-                        color="warning"
-                        size="small"
-                        icon={<StarIcon fontSize="small" />}
-                        sx={{ 
-                          position: 'absolute', 
-                          top: 12, 
-                          right: 12,
-                          fontWeight: 600
-                        }}
-                      />
-                    )}
-                  </Box>
-                  <CardContent sx={{ flexGrow: 1 }}>
-                    <Typography gutterBottom variant="h6" component="div" sx={{ fontWeight: 600 }}>
-                      {product.name}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary" sx={{ 
-                      mb: 1,
-                      display: '-webkit-box',
-                      WebkitLineClamp: 2,
-                      WebkitBoxOrient: 'vertical',
-                      overflow: 'hidden'
-                    }}>
-                      {product.description}
-                    </Typography>
-                    <Box sx={{ 
-                      display: 'flex', 
-                      justifyContent: 'space-between', 
-                      alignItems: 'center', 
-                      mt: 2 
-                    }}>
-                      <Typography variant="h6" color="primary" sx={{ fontWeight: 700 }}>
-                        ${product.price.toFixed(2)}
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        {product.category}
-                      </Typography>
-                    </Box>
-                    <Box sx={{ 
-                      display: 'flex', 
-                      alignItems: 'center', 
-                      mt: 2,
-                      pt: 2,
-                      borderTop: '1px solid rgba(0, 0, 0, 0.08)'
-                    }}>
-                      <Avatar 
-                        alt={product.sellerName} 
-                        src={product.sellerAvatar}
-                        sx={{ width: 32, height: 32 }}
-                      />
-                      <Typography variant="body2" sx={{ ml: 1 }}>
-                        {product.sellerName}
-                      </Typography>
-                    </Box>
-                  </CardContent>
-                  <CardActions sx={{ 
-                    justifyContent: 'space-between',
-                    p: 2,
-                    bgcolor: 'rgba(0, 0, 0, 0.02)'
-                  }}>
-                    <IconButton
-                      color="primary"
-                      aria-label="view details"
-                      size="small"
-                      onClick={() => handleViewDetails(product)}
-                      sx={{
-                        borderRadius: 2,
-                        px: 2,
-                        bgcolor: 'rgba(63, 81, 181, 0.08)',
-                        '&:hover': {
-                          bgcolor: 'rgba(63, 81, 181, 0.15)'
-                        }
-                      }}
-                    >
-                      <VisibilityIcon fontSize="small" sx={{ mr: 1 }} />
-                      <Typography variant="button" sx={{ textTransform: 'none' }}>
-                        Details
-                      </Typography>
-                    </IconButton>
-                    <Button 
-                      variant="contained"
-                      color="error"
-                      size="small"
-                      startIcon={<CancelIcon />}
-                      onClick={() => handleReject(product.id)}
-                      disabled={loading}
-                      sx={{
-                        borderRadius: 2,
-                        textTransform: 'none',
-                        boxShadow: 'none',
-                        '&:hover': {
-                          boxShadow: '0 2px 8px rgba(244, 67, 54, 0.3)'
-                        }
-                      }}
-                    >
-                      Reject
-                    </Button>
-                  </CardActions>
-                </Card>
+                <ProductCard
+                  product={product}
+                  onView={handleViewDetails}
+                  onReject={handleReject}
+                  showActions={true}
+                  actionButtons={{ view: true, approve: false, reject: true }}
+                />
               </Grid>
             ))}
           </Grid>
